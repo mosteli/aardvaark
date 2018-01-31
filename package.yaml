@@ -2,9 +2,9 @@ name:                aardvark
 version:             0.1.0.0
 github:              "githubuser/aardvark"
 license:             BSD3
-author:              "Author name here"
-maintainer:          "example@example.com"
-copyright:           "2018 Author name here"
+author:              "Eli Most"
+maintainer:          "mosteliml@gmail.com"
+copyright:           "2018 Eli Most"
 
 extra-source-files:
 - README.md
@@ -24,6 +24,9 @@ dependencies:
 
 library:
   source-dirs: src
+  build-tools:
+    - alex
+    - happy
 
 executables:
   aardvark-exe:
@@ -35,6 +38,7 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - aardvark
+    - optparse-applicative
 
 tests:
   aardvark-test:
@@ -46,3 +50,4 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - aardvark
+    - process
