@@ -11,10 +11,6 @@ main = greetBasic =<< execParser opts
             <> progDesc "Compile nothing at all!"
             <> header "aardvark - a fuzzy animal compiler" )
 
-data Arg = Arg
-    { isLength :: Bool
-    , otherArgs :: [String] }
-
 greetBasic :: Basic -> IO ()
 greetBasic (Basic b arguments) 
     | b = printNums arguments
@@ -40,3 +36,11 @@ basic = Basic
     <*> many
         (argument str (metavar "argument")) 
     
+data Exp =
+      EAdd Exp Exp 
+    | ELit Int
+    deriving (Show)
+
+eval :: Exp -> Exp
+eval (EAdd (ELit n) (ELit m)) = ELit $ n + m
+eval e = e

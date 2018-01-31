@@ -1,0 +1,8 @@
+aardvark - a fuzzy animal compiler
+
+Usage: aardvark [-l|--length] [argument]
+  Compile nothing at all!
+
+Available options:
+  -l,--length              Prints the lengths of the arguments
+  -h,--help                Show this help text
