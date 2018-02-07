@@ -31,6 +31,7 @@ from the root of the project.
 
 ### Grammar
 
+```
 EAdd ::= ELit n + ELit n | EFloat n + EFloat n
 EMul ::= ELit n * ELit n | EFloat n * EFloat n
 EDiv ::= ELit n `div` ELit n | EFloat n / EFloat n
@@ -39,6 +40,7 @@ EFloat ::= [0-9]+.[0-9]+
 NaN ::= NaN
 ETrue = true
 EFalse = false
+```
 
 ## Changelog
 
