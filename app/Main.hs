@@ -4,13 +4,17 @@ import Options.Applicative
 import Data.Semigroup ((<>))
 import Data.Char
 
+import qualified CalcTwo as C
+import qualified Tokens as T
+
 main :: IO ()
-main = greetBasic =<< execParser opts
-    where
-        opts = info (basic <**> helper)
-            ( fullDesc
-            <> progDesc "Compile nothing at all!"
-            <> header "aardvark - a fuzzy animal compiler" )
+main = putStrLn "lol"
+-- main = greetBasic =<< execParser opts
+--     where
+--         opts = info (basic <**> helper)
+--             ( fullDesc
+--             <> progDesc "Compile nothing at all!"
+--             <> header "aardvark - a fuzzy animal compiler" )
 
 greetBasic :: Basic -> IO ()
 greetBasic (Basic p) = evalFinal $ eval $ parsePair $ lx p

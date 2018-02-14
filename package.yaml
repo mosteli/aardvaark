@@ -27,6 +27,8 @@ library:
   build-tools:
     - alex
     - happy
+  dependencies:
+    - array
 
 executables:
   aardvark-exe:
