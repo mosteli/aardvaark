@@ -1,0 +1,1 @@
+EAdd (Pos {offset = 3, line = 1, col = 4}) (EVal (ENaN (Pos {offset = 0, line = 1, col = 1}))) (EVal (ENaN (Pos {offset = 4, line = 1, col = 5})))

@@ -1,33 +1,23 @@
 module Grammar where
 
-data Token =
-    TSpaces
-  | TLParen
-  | TRParen
-  | TPlus
-  | TMul
-  | TSub
-  | TDiv
-  | TIf
-  | TThen
-  | TElse
-  | TTrue
-  | TFalse
-  | TLessThan
-  | TNaN
-  | TInt Integer
-  | TFloat Float
-  deriving (Eq,Show)
+data Pos = Pos { offset :: Int
+               , line   :: Int
+               , col    :: Int }
+               deriving (Show, Eq)
 
 data Exp =
-      EAdd Exp Exp
-    | EMul Exp Exp
-    | ESub Exp Exp
-    | EDiv Exp Exp
-    | EInt Integer
-    | EFloat Float
-    | ELessEqThan Exp Exp
-    | EIf Exp Exp Exp
-    | EBool Bool
-    | ENaN
+      EAdd Pos Exp Exp
+    | EMul Pos Exp Exp
+    | ESub Pos Exp Exp
+    | EDiv Pos Exp Exp
+    | ELessEqThan Pos Exp Exp
+    | EIf Pos Exp Exp Exp
+    | EVal EValue
     deriving (Show, Eq)
+
+data EValue = 
+    EInt Pos Integer
+  | EFloat Pos Float
+  | EBool Pos Bool
+  | ENaN Pos
+  deriving (Show, Eq)

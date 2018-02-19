@@ -2,6 +2,7 @@
 module Parser where
 
 import Data.Char
+import Lexer
 import Grammar
 }
 
@@ -12,39 +13,47 @@ import Grammar
 %left '*' '/'
 
 %token
-  '('   { TLParen }
-  ')'   { TRParen }
-  '+'   { TPlus   }
-  '*'   { TMul    }
-  '-'   { TSub    }
-  '/'   { TDiv    }
-  if    { TIf     }
-  then  { TThen  }
-  else  { TElse  }
-  true  { TTrue  }
-  false { TFalse }
-  nan   { TNaN   }
-  int   { TInt $$ }
-  float { TFloat $$ }
-  '<='  { TLessThan }
+  '('   { TLParen _ }
+  ')'   { TRParen _ }
+  '+'   { TPlus _   }
+  '*'   { TMul _    }
+  '-'   { TSub _    }
+  '/'   { TDiv _    }
+  if    { TIf _     }
+  then  { TThen _   }
+  else  { TElse _   }
+  true  { TTrue _   }
+  false { TFalse _  }
+  nan   { TNaN _    }
+  int   { TInt _ _ }
+  float { TFloat _ _ }
+  '<='  { TLessThan _ }
 
 %%
 
-Exp : Exp '+' Exp              { EAdd   $1 $3 }
-    | Exp '-' Exp              { ESub   $1 $3 }
-    | Exp '/' Exp              { EDiv   $1 $3 }
-    | Exp '*' Exp              { EMul   $1 $3 }
-    | '(' Exp ')'              { $2           }
-    | int                      { EInt   $1    }
-    | float                    { EFloat $1    }
-    | if Exp then Exp else Exp { EIf $2 $4 $6 }
-    | true                     { EBool True   }
-    | false                    { EBool False  }
-    | nan                      { ENaN          }
-    | Exp '<=' Exp             { ELessEqThan $1 $3 }
+Exp0 : if Exp0 then Exp0 else Exp0 { EIf (tokLoc $1) $2 $4 $6 }
+     | Exp1 { $1 }
+
+Exp1 : Exp1 '+' Exp1           { EAdd (tokLoc $2) $1 $3 }
+    | Exp1 '-' Exp1            { ESub (tokLoc $2) $1 $3 }
+    | Exp1 '/' Exp1            { EDiv (tokLoc $2) $1 $3 }
+    | Exp1 '*' Exp1            { EMul (tokLoc $2) $1 $3 }
+    | '(' Exp1 ')'             { $2                     }
+    | int                      { buildValuedExp $1      }
+    | float                    { buildValuedExp $1      }
+    | true                     { EVal $ EBool (tokLoc $1) True        }
+    | false                    { EVal $ EBool (tokLoc $1) False       }
+    | nan                      { EVal $ ENaN  (tokLoc $1)              }
+    | Exp1 '<=' Exp1           { ELessEqThan (tokLoc $2) $1 $3 }
+
 {
 
-happyError :: [Token] -> a
+buildValuedExp :: Token -> Exp
+buildValuedExp (TInt p i) = EVal $ EInt (alexPosnToPos p) i
+buildValuedExp (TFloat p i) = EVal $ EFloat (alexPosnToPos p) i
+buildValuedExp _ = error "Uncovered valued token in Parser.buildValuedExp"
+
+happyError :: [Token] -> b
 happyError _ = error ("Parse error\n")
 
 }

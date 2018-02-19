@@ -15,12 +15,12 @@ from the root directory of the project.
 
 ### Running the Project
 To run the project type
-```
-stack exec aardvark -- the arguments you wish to invoke
+``
+stack exec aardvark-exe -- the arguments you wish to invoke
 ```
 with any arguments you wish to invoke on the program.
 
-There is one flag: --help.
+Use the --help flag to explore additional commands.
 
 ### Testing the Project
 To run the included tests type
@@ -31,18 +31,48 @@ from the root of the project.
 
 ### Grammar
 
+Syntax:
 ```
-EAdd ::= ELit n + ELit n | EFloat n + EFloat n
-EMul ::= ELit n * ELit n | EFloat n * EFloat n
-EDiv ::= ELit n `div` ELit n | EFloat n / EFloat n
-ELit ::= [0-9]+
-EFloat ::= [0-9]+.[0-9]+
-NaN ::= NaN
-ETrue = true
-EFalse = false
+e ::= n | (+ e1 e2) | (- e1 e2) | (* e1 e2) | (/ e1 e2)
+    | true | false | (<= e1 e2) | (if e1 e2 e3)
+```
+
+Where n is a number of the form of an integer or float.
+
+Grammar:
+```
+Exp0 : if Exp0 then Exp0 else Exp0 { EIf (tokLoc $1) $2 $4 $6 }
+     | Exp1 { $1 }
+
+Exp1 : Exp1 '+' Exp1           { EAdd pos $1 $3 }
+    | Exp1 '-' Exp1            { ESub pos $1 $3 }
+    | Exp1 '/' Exp1            { EDiv pos $1 $3 }
+    | Exp1 '*' Exp1            { EMul pos $1 $3 }
+    | '(' Exp1 ')'             { $2                     }
+    | int                      { buildValuedExp $1      }
+    | float                    { buildValuedExp $1      }
+    | true                     { EVal $ EBool pos True        }
+    | false                    { EVal $ EBool pos False       }
+    | nan                      { EVal $ ENaN  pos             }
+    | Exp1 '<=' Exp1           { ELessEqThan pos $1 $3 }
 ```
 
 ## Changelog
+
+#### 2/18/2018
+##### New FEatures
+- Addition of if statements
+- No longer using LISP-like syntax
+- Can use lexer and parser flags to see lexer and parser output
+- Updated Tests
+- Position information in AST
+
+##### Changed Features
+- Syntax has been changed
+- Alex and Happy for lexing and parsing
+
+##### Known Bugs
+- N/A
 
 #### 2/7/2018
 ##### New Features
