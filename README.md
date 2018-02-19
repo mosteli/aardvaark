@@ -28,6 +28,7 @@ To run the included tests type
 stack test
 ```
 from the root of the project.
+```
 
 ### Grammar
 
