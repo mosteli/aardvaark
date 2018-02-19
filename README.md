@@ -15,7 +15,7 @@ from the root directory of the project.
 
 ### Running the Project
 To run the project type
-``
+```
 stack exec aardvark-exe -- the arguments you wish to invoke
 ```
 with any arguments you wish to invoke on the program.
@@ -28,7 +28,6 @@ To run the included tests type
 stack test
 ```
 from the root of the project.
-```
 
 ### Grammar
 
