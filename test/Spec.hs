@@ -1,6 +1,5 @@
 module Main where
-    
-import Lib
+
 import qualified System.Process as S
 import qualified System.Exit as E
 
