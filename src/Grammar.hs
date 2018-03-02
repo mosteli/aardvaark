@@ -6,18 +6,25 @@ data Pos = Pos { offset :: Int
                deriving (Show, Eq)
 
 data Exp =
-      EAdd Pos Exp Exp
-    | EMul Pos Exp Exp
-    | ESub Pos Exp Exp
-    | EDiv Pos Exp Exp
+      EBinop Pos EOptype Exp Exp
     | ELessEqThan Pos Exp Exp
     | EIf Pos Exp Exp Exp
+    | ELet Pos Exp Exp
+    | EVar Pos String
     | EVal EValue
     deriving (Show, Eq)
+
+data EOptype = 
+    Add 
+  | Sub 
+  | Mul 
+  | Div 
+  deriving (Show, Eq)
 
 data EValue = 
     EInt Pos Integer
   | EFloat Pos Float
   | EBool Pos Bool
   | ENaN Pos
+  | EFunc Pos Exp
   deriving (Show, Eq)

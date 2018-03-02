@@ -8,8 +8,10 @@ import Grammar
 
 $digit = 0-9
 @decimal = $digit+
+$lower = [a-z]
 $alpha = [a-zA-Z]
 @float = @decimal \. @decimal
+@variable = $lower $alpha+
 
 tokens :-
 $white+       ;
@@ -28,6 +30,12 @@ false         { (\p s -> TFalse p)         }
 NaN           { (\p s -> TNaN p)           }
 @decimal      { (\p s -> TInt p (read s))     }
 @float        { (\p s -> TFloat p (read s))   }
+let           { (\p s -> TLet p)             }
+in            { (\p s -> TIn p)              }
+=             { (\p s -> TAssign p)          }
+func          { (\p s -> TFunc   p)          }
+->            { (\p s -> TArrow  p)          }
+@variable     { (\p s -> TVariable p (read s) }
 
 {
 
@@ -48,6 +56,12 @@ data Token =
   | TNaN AlexPosn
   | TInt AlexPosn Integer
   | TFloat AlexPosn Float
+  | TLet AlexPosn
+  | TIn AlexPosn 
+  | TAssign AlexPosn
+  | TFunc AlexPosn
+  | TArrow AlexPosn
+  | TVariable AlexPosn String
   deriving (Eq)
 
 -- Extracts AlexPosn from a given token
@@ -68,6 +82,12 @@ tokLoc (TLessThan p) = alexPosnToPos p
 tokLoc (TNaN p) = alexPosnToPos p
 tokLoc (TInt p _) = alexPosnToPos p
 tokLoc (TFloat p _) = alexPosnToPos p
+tokLoc (TLet p) = alexPosnToPos p 
+tokLoc (TIn p) = alexPosnToPos p 
+tokLoc (TAssign p) = alexPosnToPos p 
+tokLoc (TFunc p) = alexPosnToPos p 
+tokLoc (TArrow p) = alexPosnToPos p 
+tokLoc (TVariable p _) = alexPosn p 
 
 alexPosnToPos :: AlexPosn -> Pos
 alexPosnToPos (AlexPn o l c) = Pos o l c
@@ -89,5 +109,11 @@ instance Show Token where
   show (TNaN _)      = "NaN"
   show (TInt _ n)    = show n
   show (TFloat _ n)  = show n
+  show (TLet _) = "let"
+  show (TIn _) = "in"
+  show (TFunc _) = "func"
+  show (TAssign _) = "="
+  show (TArrow _) = "->"
+  show (TVariable _ s) = s
 
 }

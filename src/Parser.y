@@ -11,6 +11,7 @@ import Grammar
 
 %left '+' '-'
 %left '*' '/'
+%right '->'
 
 %token
   '('   { TLParen _ }
@@ -28,10 +29,18 @@ import Grammar
   int   { TInt _ _ }
   float { TFloat _ _ }
   '<='  { TLessThan _ }
+  let   { TLet _      }
+  in    { TIn  _      }
+  func  { TFunc _     }
+  '='   { TAssign _   }
+  var   { TVariable _ _ }
+  '->'  { TArrow _ }
 
 %%
 
 Exp0 : if Exp0 then Exp0 else Exp0 { EIf (tokLoc $1) $2 $4 $6 }
+     | let var = Exp1 in Exp1      { }
+     | func var -> Exp1
      | Exp1 { $1 }
 
 Exp1 : Exp1 '+' Exp1           { EAdd (tokLoc $2) $1 $3 }
@@ -41,9 +50,9 @@ Exp1 : Exp1 '+' Exp1           { EAdd (tokLoc $2) $1 $3 }
     | '(' Exp1 ')'             { $2                     }
     | int                      { buildValuedExp $1      }
     | float                    { buildValuedExp $1      }
-    | true                     { EVal $ EBool (tokLoc $1) True        }
-    | false                    { EVal $ EBool (tokLoc $1) False       }
-    | nan                      { EVal $ ENaN  (tokLoc $1)              }
+    | true                     { EVal $ EBool (tokLoc $1) True }
+    | false                    { EVal $ EBool (tokLoc $1) False  }
+    | nan                      { EVal $ ENaN  (tokLoc $1)        }
     | Exp1 '<=' Exp1           { ELessEqThan (tokLoc $2) $1 $3 }
 
 {
