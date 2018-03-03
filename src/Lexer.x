@@ -11,7 +11,7 @@ $digit = 0-9
 $lower = [a-z]
 $alpha = [a-zA-Z]
 @float = @decimal \. @decimal
-@variable = $lower $alpha+
+@variable = $alpha+
 
 tokens :-
 $white+       ;
@@ -28,14 +28,16 @@ true          { (\p s -> TTrue p)          }
 false         { (\p s -> TFalse p)         }
 \<\=          { (\p s -> TLessThan p)      }
 NaN           { (\p s -> TNaN p)           }
-@decimal      { (\p s -> TInt p (read s))     }
-@float        { (\p s -> TFloat p (read s))   }
+@decimal      { (\p s -> TInt p (read s))    }
+@float        { (\p s -> TFloat p (read s))  }
 let           { (\p s -> TLet p)             }
 in            { (\p s -> TIn p)              }
-=             { (\p s -> TAssign p)          }
+\=            { (\p s -> TAssign p)          }
 func          { (\p s -> TFunc   p)          }
-->            { (\p s -> TArrow  p)          }
-@variable     { (\p s -> TVariable p (read s) }
+\-\>          { (\p s -> TArrow  p)          }
+fix           { (\p s -> TFix p)        }
+@variable     { (\p s -> TVariable p s) }
+\~            { (\p s -> TApply p)      }
 
 {
 
@@ -62,6 +64,8 @@ data Token =
   | TFunc AlexPosn
   | TArrow AlexPosn
   | TVariable AlexPosn String
+  | TApply AlexPosn
+  | TFix AlexPosn
   deriving (Eq)
 
 -- Extracts AlexPosn from a given token
@@ -87,7 +91,9 @@ tokLoc (TIn p) = alexPosnToPos p
 tokLoc (TAssign p) = alexPosnToPos p 
 tokLoc (TFunc p) = alexPosnToPos p 
 tokLoc (TArrow p) = alexPosnToPos p 
-tokLoc (TVariable p _) = alexPosn p 
+tokLoc (TVariable p _) = alexPosnToPos p 
+tokLoc (TApply p) = alexPosnToPos p
+tokLoc (TFix p) = alexPosnToPos p
 
 alexPosnToPos :: AlexPosn -> Pos
 alexPosnToPos (AlexPn o l c) = Pos o l c
@@ -114,6 +120,8 @@ instance Show Token where
   show (TFunc _) = "func"
   show (TAssign _) = "="
   show (TArrow _) = "->"
-  show (TVariable _ s) = s
+  show (TVariable _ s) = "var " ++ s
+  show (TApply _) = "~"
+  show (TFix _) = "fix"
 
 }
