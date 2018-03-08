@@ -24,38 +24,61 @@ eval (EBinop p op e1 e2) = case (e1, e2) of
         var2@(EVar p3 str2) -> (binopToConstructor p op) var1 var2
         _ -> eval $ (binopToConstructor p op) (EVar p2 str) (eval e3)
     (e3, var1@(EVar p2 str)) -> eval $ (binopToConstructor p op) (eval e3) var1
-    (_, _) -> eval $ (binopToConstructor p op) (eval e1) (eval e2)
+    (_, _) -> eval $ (binopToConstructor p op) (eval e1) (eval e2) -- WRONG for small step semantics
 
 eval (EIf p e1 e2 e3) = case e1 of
     (EVal v1) -> case v1 of
-        (EBool _ True) -> eval e2
-        (EBool _ False) -> eval e3
+        (EBool _ True) -> e2
+        (EBool _ False) -> e3
         _ -> error $ "Type mismatch at column " ++ show (col p) ++ ", line " ++ show (line p)
     (ELessEqThan p r1 r2) -> case (r1, r2) of
         (EVal v1, EVal v2) -> case (v1, v2) of 
-            ((EInt _ n1), (EInt _ n2)) -> if n1 < n2 then eval e2 else eval e3
-            ((EInt _ n1), (EFloat _ n2)) -> if (fromIntegral n1) < n2 then eval e2 else eval e3
-            ((EFloat _ n1), (EInt _ n2)) -> if n1 < (fromIntegral n2) then eval e2 else eval e3
-            ((EFloat _ n1), (EFloat _ n2)) -> if n1 < n2 then eval e2 else eval e3
+            ((EInt _ n1), (EInt _ n2)) -> if n1 <= n2 then e2 else e3
+            ((EInt _ n1), (EFloat _ n2)) -> if (fromIntegral n1) <= n2 then e2 else e3
+            ((EFloat _ n1), (EInt _ n2)) -> if n1 <= (fromIntegral n2) then e2 else e3
+            ((EFloat _ n1), (EFloat _ n2)) -> if n1 <= n2 then e2 else e3
             _ -> error $ "Type mismatch at column " ++ show (col p) ++ ", line " ++ show (line p)
     _ -> error $ "Type mismatch at column " ++ show (col p) ++ ", line " ++ show (line p)
 
 eval var@(EVar p s) = var 
 
-eval (ELet _ s (EVal v) e2) = eval $ subst v s e2 
-eval (ELet p s e1 e2) = eval (ELet p s (eval e1) e2)
+eval (ELet _ s (EVal v) e2) = subst v s e2 
+eval (ELet p s e1 e2) = ELet p s (eval e1) e2
 
 eval (EApp p e1 e2) = case (e1, e2) of
     (EVal v1, EVal v2) -> case v1 of
-        (EFunc _ s funcExp) -> eval $ subst v2 s funcExp
+        (EFunc _ s funcExp) -> subst v2 s funcExp
         fix@(EFix _ funcName varName funcExp) -> let varReplaced = subst v2 varName funcExp in subst fix funcName varReplaced
         _ -> error $ (ppPos p) ++ " Function application operator applied where first paramater is not a function"
     (EVal _, var) -> case var of 
         (EVar _ _) -> error $ (ppPos p) ++ " Application of function to unresolved variable" 
+        b@(EBinop _ _ _ _) -> EApp p e1 (eval b)
         _ -> error $ (ppPos p) ++ " Application of function to expression which did not resolve to a value"
-    (_, _) -> eval $ EApp p (eval e1) (eval e2)
+    (_, _) -> EApp p (eval e1) (eval e2)
 
 eval e1 = e1
+
+deepEval :: Exp -> Exp
+deepEval v@(EVal _) = v
+deepEval e = deepEval (eval e)
+
+stepNEval :: Int -> Exp -> Exp
+stepNEval _ v@(EVal _) = v
+stepNEval 0 e = e
+stepNEval n e = stepNEval (n-1) (eval e)
+
+showExecutionSteps :: Exp -> IO ()
+showExecutionSteps v@(EVal _) = putStrLn $ show v
+showExecutionSteps e = do
+    putStrLn $ show e 
+    e <- helper (pure e)
+    showExecutionSteps e
+    where
+        helper :: IO Exp -> IO Exp 
+        helper ioe = do
+            exp <- ioe
+            putStrLn $ show exp
+            return $ eval exp
 
 binopIntFunc :: Integral a => EOptype -> a -> a -> a
 binopIntFunc Add = (+)
@@ -97,9 +120,6 @@ subst val str e = recur e
         | otherwise = EVal (EFunc p funcStr (s funcE)) -- freely substite variables of name str in funcE
     recur (EApp p e1 e2) = EApp p (s e1) (s e2)
     recur e = e 
-
--- substituting with a function is a bit differ
--- A function provides a name for which it wants you to substitute a value
 
 evalFinal :: Exp -> IO ()
 evalFinal (EVal v1) = case v1 of 

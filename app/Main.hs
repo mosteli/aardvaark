@@ -22,7 +22,7 @@ greetBasic (Basic lex par prog)
         else putStrLn $ show $ P.parser $ lexed
     | otherwise = if null lexed
         then putStrLn "No tokens were parsed. Did you pass an empty file?"
-        else E.evalFinal $ E.eval $ P.parser $ lexed
+        else E.evalFinal $ E.deepEval $ P.parser $ lexed
     where
         lexed = L.alexScanTokens prog
 

@@ -12,7 +12,6 @@ import Grammar
 
 %left '+' '-'
 %left '*' '/'
-%left '~'
 
 %token
   '('   { TLParen _ }
@@ -41,20 +40,20 @@ import Grammar
 
 %%
 
+
+
 Exp0 : if Exp0 then Exp0 else Exp0 { EIf (tokLoc $1) $2 $4 $6 }
      | let var '=' Exp0 in Exp0    { ELet (tokLoc $1) (varString $2) $4 $6 }
      | func var '->' Exp0          { EVal (EFunc (tokLoc $1) (varString $2) $4) }
      | fix var var '->' Exp0       { EVal (EFix (tokLoc $1) (varString $2) (varString $3) $5) }
-     | Exp0 '~' Exp0               { EApp (tokLoc $2) $1 $3 }
      | '(' Exp0 ')' { $2 }
      | Exp1 { $1 }
-
-ExpVar : var                      { EVar (tokLoc $1) (varString $1) }
 
 Exp1 : Exp1 '+' Exp1           { EBinop (tokLoc $2) Add $1 $3 }
     | Exp1 '-' Exp1            { EBinop (tokLoc $2) Sub $1 $3 }
     | Exp1 '/' Exp1            { EBinop (tokLoc $2) Div $1 $3 }
     | Exp1 '*' Exp1            { EBinop (tokLoc $2) Mul $1 $3 }
+    | Exp1 '~' Exp1            { EApp   (tokLoc $2) $1 $3     }
     | '(' Exp1 ')'             { $2                     }
     | int                      { buildValuedExp $1      }
     | float                    { buildValuedExp $1      }
@@ -62,7 +61,7 @@ Exp1 : Exp1 '+' Exp1           { EBinop (tokLoc $2) Add $1 $3 }
     | false                    { EVal $ EBool (tokLoc $1) False }
     | nan                      { EVal $ ENaN  (tokLoc $1)       }
     | Exp1 '<=' Exp1           { ELessEqThan (tokLoc $2) $1 $3  }
-    | ExpVar { $1 }
+    | var                      { EVar (tokLoc $1) (varString $1) }
 
 {
 
