@@ -33,31 +33,18 @@ from the root of the project.
 
 Syntax:
 ```
-e ::= n | (+ e1 e2) | (- e1 e2) | (* e1 e2) | (/ e1 e2)
-    | true | false | (<= e1 e2) | (if e1 e2 e3)
+e ::= n | e1 + e2 | e1 - e2 | e1 * e2) | e1 / e2
+    | true | false | (<= e1 e2) | if e1 e2 e3 | func var -> e
+    | fix var var -> e
 ```
 
-Where n is a number of the form of an integer or float.
-
-Grammar:
-```
-Exp0 : if Exp0 then Exp0 else Exp0 { EIf (tokLoc $1) $2 $4 $6 }
-     | Exp1 { $1 }
-
-Exp1 : Exp1 '+' Exp1           { EAdd pos $1 $3 }
-    | Exp1 '-' Exp1            { ESub pos $1 $3 }
-    | Exp1 '/' Exp1            { EDiv pos $1 $3 }
-    | Exp1 '*' Exp1            { EMul pos $1 $3 }
-    | '(' Exp1 ')'             { $2                     }
-    | int                      { buildValuedExp $1      }
-    | float                    { buildValuedExp $1      }
-    | true                     { EVal $ EBool pos True        }
-    | false                    { EVal $ EBool pos False       }
-    | nan                      { EVal $ ENaN  pos             }
-    | Exp1 '<=' Exp1           { ELessEqThan pos $1 $3 }
-```
+Where n is a number of the form of an integer or float and var is an alphabetical string for a variable name.
 
 ## Changelog
+#### 3/8/2018
+- Addition of functions and fix functions
+- Revamped test suite
+- Implemented small-step semantics
 
 #### 2/18/2018
 ##### New FEatures
