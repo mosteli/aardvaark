@@ -21,10 +21,11 @@ eval (EBinop p op e1 e2) = case (e1, e2) of
             (EFloat _ _) -> EVal $ ENaN p
         (_, _) -> error $ (show op) ++ " invalid types error at column " ++ show (col p) ++ " , line " ++ show (line p)
     (var1@(EVar p2 str), e3) -> case e3 of
-        var2@(EVar p3 str2) -> (binopToConstructor p op) var1 var2
+        var2@(EVar _ _) -> (binopToConstructor p op) var1 var2
         _ -> eval $ (binopToConstructor p op) (EVar p2 str) (eval e3)
-    (e3, var1@(EVar p2 str)) -> eval $ (binopToConstructor p op) (eval e3) var1
-    (_, _) -> eval $ (binopToConstructor p op) (eval e1) (eval e2) -- WRONG for small step semantics
+    (e3, var1@(EVar _ _)) -> eval $ (binopToConstructor p op) (eval e3) var1
+    (EVal _, _) -> binopToConstructor p op e1 (eval e2)
+    (_, _) -> binopToConstructor p op (eval e1) e2
 
 eval (EIf p e1 e2 e3) = case e1 of
     (EVal v1) -> case v1 of
@@ -40,7 +41,7 @@ eval (EIf p e1 e2 e3) = case e1 of
             _ -> error $ "Type mismatch at column " ++ show (col p) ++ ", line " ++ show (line p)
     _ -> error $ "Type mismatch at column " ++ show (col p) ++ ", line " ++ show (line p)
 
-eval var@(EVar p s) = var 
+eval var@(EVar _ _) = var 
 
 eval (ELet _ s (EVal v) e2) = subst v s e2 
 eval (ELet p s e1 e2) = ELet p s (eval e1) e2

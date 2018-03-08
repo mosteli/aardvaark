@@ -1,0 +1,1 @@
+ELet  "fac" (EVal EFix f x -> EIf  (ELessEqThan  (EVar  "x") (EVal 1)) (EVar  "x") (EBinop  Mul (EVar  "x") (EApp  (EVar  "f") (EBinop  Sub (EVar  "x") (EVal 1))))) (EApp  (EVar  "fac") (EVal 5))
