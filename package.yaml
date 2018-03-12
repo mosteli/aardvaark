@@ -29,6 +29,8 @@ library:
     - happy
   dependencies:
     - array
+    - containers
+    - mtl
 
 executables:
   aardvark-exe:

@@ -15,34 +15,39 @@ $alpha = [a-zA-Z]
 
 tokens :-
 $white+       ;
-\(            { (\p s -> TLParen p)         }
-\)            { (\p s -> TRParen p)         }
-\+            { (\p s -> TPlus p)           }
-\*            { (\p s -> TMul p)            }
-\-            { (\p s -> TSub p)           }
-\/            { (\p s -> TDiv p)           }
-if            { (\p s -> TIf p)            }
-then          { (\p s -> TThen p)          }
-else          { (\p s -> TElse p)          }
-true          { (\p s -> TTrue p)          }
-false         { (\p s -> TFalse p)         }
-\<\=          { (\p s -> TLessThan p)      }
-NaN           { (\p s -> TNaN p)           }
-@decimal      { (\p s -> TInt p (read s))    }
+\:\:          { (\p s -> TTypeOf p)          }
+\(            { (\p s -> TLParen p)          }
+\)            { (\p s -> TRParen p)          }
+\+            { (\p s -> TPlus p)            }
+\*            { (\p s -> TMul p)             }
+\-            { (\p s -> TSub p)             }
+\/            { (\p s -> TDiv p)             }
+if            { (\p s -> TIf p)              }
+then          { (\p s -> TThen p)            }
+else          { (\p s -> TElse p)            }
+true          { (\p s -> TTrue p)            }
+false         { (\p s -> TFalse p)           }
+\<\=          { (\p s -> TLessThan p)        }
+NaN           { (\p s -> TNaN p)             }
+@decimal      { (\p s -> TInt p   (read s))  }
 @float        { (\p s -> TFloat p (read s))  }
 let           { (\p s -> TLet p)             }
 in            { (\p s -> TIn p)              }
 \=            { (\p s -> TAssign p)          }
 func          { (\p s -> TFunc   p)          }
 \-\>          { (\p s -> TArrow  p)          }
-fix           { (\p s -> TFix p)        }
-@variable     { (\p s -> TVariable p s) }
-\~            { (\p s -> TApply p)      }
+int           { (\p s -> TIntType    p)      }
+float         { (\p s -> TFloatType  p)      }
+bool          { (\p s -> TBoolType   p)      }
+fix           { (\p s -> TFix p)             }
+@variable     { (\p s -> TVariable p s)      }
+\~            { (\p s -> TApply p)           }
 
 {
 
 data Token =
     TSpaces AlexPosn
+  | TTypeOf AlexPosn
   | TLParen AlexPosn
   | TRParen AlexPosn
   | TPlus AlexPosn
@@ -66,11 +71,15 @@ data Token =
   | TVariable AlexPosn String
   | TApply AlexPosn
   | TFix AlexPosn
+  | TIntType AlexPosn
+  | TFloatType AlexPosn
+  | TBoolType AlexPosn
   deriving (Eq)
 
 -- Extracts AlexPosn from a given token
 tokLoc :: Token -> Pos
 tokLoc (TSpaces p) = alexPosnToPos p
+tokLoc (TTypeOf p) = alexPosnToPos p
 tokLoc (TRParen p) = alexPosnToPos p
 tokLoc (TLParen p) = alexPosnToPos p
 tokLoc (TPlus p) = alexPosnToPos p
@@ -94,6 +103,9 @@ tokLoc (TArrow p) = alexPosnToPos p
 tokLoc (TVariable p _) = alexPosnToPos p 
 tokLoc (TApply p) = alexPosnToPos p
 tokLoc (TFix p) = alexPosnToPos p
+tokLoc (TIntType p) = alexPosnToPos p 
+tokLoc (TFloatType p) = alexPosnToPos p 
+tokLoc (TBoolType p) = alexPosnToPos p
 
 alexPosnToPos :: AlexPosn -> Pos
 alexPosnToPos (AlexPn o l c) = Pos o l c
@@ -123,5 +135,8 @@ instance Show Token where
   show (TVariable _ s) = "var " ++ s
   show (TApply _) = "~"
   show (TFix _) = "fix"
+  show (TIntType _) = "int"
+  show (TFloatType _) = "float"
+  show (TBoolType _) = "bool"
 
 }
