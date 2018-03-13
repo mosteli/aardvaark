@@ -1,1 +1,0 @@
-EAdd (Pos {offset = 5, line = 1, col = 6}) (EDiv (Pos {offset = 2, line = 1, col = 3}) (EVal (EInt (Pos {offset = 1, line = 1, col = 2}) 1)) (EVal (EInt (Pos {offset = 3, line = 1, col = 4}) 3))) (EDiv (Pos {offset = 8, line = 1, col = 9}) (EVal (EInt (Pos {offset = 7, line = 1, col = 8}) 2)) (EVal (EInt (Pos {offset = 9, line = 1, col = 10}) 5)))

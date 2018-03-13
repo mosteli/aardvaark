@@ -5,6 +5,8 @@ import Data.Semigroup ((<>))
 import qualified Lexer as L
 import qualified Parser as P
 import qualified Eval as E
+import qualified Grammar as G
+import qualified Typechecker as TC
 
 main :: IO ()
 main = greetBasic =<< execParser opts
@@ -24,17 +26,25 @@ greetBasic (Basic lex par read step prog)
         putStrLn $ show $ P.parser $ L.alexScanTokens input
     | read = do
         input <- readFile prog
-        E.evalFinal $ E.deepEval $ P.parser $ L.alexScanTokens input
-    | step = E.showExecutionSteps $ P.parser $ lexed
+        let e = P.parser $ L.alexScanTokens input in
+            let t = TC.typecheck' e in
+                case t of
+                    _ -> putStrLn $ show t  
+                    G.YBool -> E.evalFinal $ E.deepEval $ P.parser $ L.alexScanTokens input
+    | step = E.showExecutionSteps $ parsed
     | lex = putStrLn $ show $ lexed
     | par = if null lexed
         then putStrLn "No tokens were parsed. Did you pass an empty file?" 
-        else putStrLn $ show $ P.parser $ lexed
+        else putStrLn $ show $ parsed
     | otherwise = if null lexed
         then putStrLn "No tokens were parsed. Did you pass an empty file?"
-        else E.evalFinal $ E.deepEval $ P.parser $ lexed
+        else
+            let t = TC.typecheck' parsed in
+                E.evalFinal $ E.deepEval $ parsed
     where
         lexed = L.alexScanTokens prog
+        parsed = P.parser $ lexed
+        
 
 data Basic = Basic
     { useLexer  :: Bool

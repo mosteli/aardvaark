@@ -1,1 +1,1 @@
-ELet  "max" (EVal Efunc x -> EVal Efunc y -> EIf  (ELessEqThan  (EVar  "x") (EVar  "y")) (EVar  "y") (EVar  "x")) (EApp  (EApp  (EVar  "max") (EVal 1)) (EVal 3))
+ELet  "max" (EVal EFunc YApp YInt (YApp YInt YInt)x -> EVal EFunc YApp YInt YInty -> EIf  (ELessEqThan  (EVar  "x") (EVar  "y")) (EVar  "y") (EVar  "x")) (EApp  (EApp  (EVar  "max") (EVal 1)) (EVal 3)) (YApp YInt (YApp YInt YInt))

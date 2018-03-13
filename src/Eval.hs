@@ -3,6 +3,8 @@ module Eval where
 {-# LANGUAGE BangPatterns #-}
 
 import Grammar
+import Control.Monad.Reader
+import qualified Data.Map.Strict as Map
 
 eval :: Exp -> Exp
 eval (EBinop p op e1 e2) = case (e1, e2) of 
@@ -32,7 +34,7 @@ eval (EIf p e1 e2 e3) = case e1 of
         (EBool _ True) -> e2
         (EBool _ False) -> e3
         _ -> error $ "Type mismatch at column " ++ show (col p) ++ ", line " ++ show (line p)
-    (ELessEqThan p r1 r2) -> case (r1, r2) of
+    (ELessEqThan _ r1 r2) -> case (r1, r2) of
         (EVal v1, EVal v2) -> case (v1, v2) of 
             ((EInt _ n1), (EInt _ n2)) -> if n1 <= n2 then e2 else e3
             ((EInt _ n1), (EFloat _ n2)) -> if (fromIntegral n1) <= n2 then e2 else e3
@@ -43,19 +45,36 @@ eval (EIf p e1 e2 e3) = case e1 of
 
 eval var@(EVar _ _) = var 
 
-eval (ELet _ s (EVal v) e2) = subst v s e2 
-eval (ELet p s e1 e2) = ELet p s (eval e1) e2
+eval (ELet _ s (EVal v) e2 _) = subst v s e2 
+eval (ELet p s e1 e2 t) = ELet p s (eval e1) e2 t
 
 eval (EApp p e1 e2) = case (e1, e2) of
     (EVal v1, EVal v2) -> case v1 of
-        (EFunc _ s funcExp) -> subst v2 s funcExp
-        fix@(EFix _ funcName varName funcExp) -> let varReplaced = subst v2 varName funcExp in subst fix funcName varReplaced
+        (EFunc _ s funcExp _) -> subst v2 s funcExp
+        fix@(EFix _ funcName varName funcExp _) -> let varReplaced = subst v2 varName funcExp in subst fix funcName varReplaced
         _ -> error $ (ppPos p) ++ " Function application operator applied where first paramater is not a function"
     (EVal _, var) -> case var of 
         (EVar _ _) -> error $ (ppPos p) ++ " Application of function to unresolved variable" 
         b@(EBinop _ _ _ _) -> EApp p e1 (eval b)
         _ -> error $ (ppPos p) ++ " Application of function to expression which did not resolve to a value"
     (_, _) -> EApp p (eval e1) (eval e2)
+
+eval (EFst _ e1) = eval e1 
+eval (ESnd _ e2) = eval e2
+eval (EEmpty p e1) = 
+    case e1 of 
+        (EVal (ENil _ _)) -> EVal $ EBool p True
+        _          -> EVal $ EBool p False 
+eval (EHead p e) = 
+    case e of 
+        (EVal (ECons p e1 e2)) -> eval e1 
+        (EVal (ENil _ _)) -> error $ (ppPos p) ++ " Application of head on empty list"
+        _ -> error $ (ppPos p) ++ " Application of head on non-list type"
+eval (ETail p e) = 
+    case e of 
+        (EVal (ECons p e1 e2)) -> eval e2 
+        (EVal (ENil _ _)) -> error $ (ppPos p) ++ " Application of tail on empty list"
+        _ -> error $ (ppPos p) ++ " Application of tail on non-list type"
 
 eval e1 = e1
 
@@ -105,9 +124,9 @@ subst :: EValue -- Value to substitute in
     -> Exp -- Expression to do substituting in
     -> Exp -- Resulting expression with pertinent variables with name String substituted for EValue
 subst val str var@(EVar _ s) = if s == str then EVal val else var
-subst val str (EVal (EFunc p funcStr funcE))
-    | str == funcStr = EVal (EFunc p funcStr (subst val str funcE))
-    | otherwise = EVal (EFunc p funcStr (subst val str funcE))
+subst val str (EVal (EFunc p funcStr funcE t))
+    | str == funcStr = EVal (EFunc p funcStr (subst val str funcE) t)
+    | otherwise = EVal (EFunc p funcStr (subst val str funcE) t)
 subst val str e = recur e 
  where
     s = subst val str 
@@ -115,10 +134,10 @@ subst val str e = recur e
     recur (EBinop p  op e1 e2) = EBinop p op (s e1) (s e2)
     recur (ELessEqThan p e1 e2) = ELessEqThan p (s e1) (s e2)
     recur (EIf p e1 e2 e3) = EIf p (s e1) (s e2) (s e3)
-    recur (ELet p str2 e1 e2) = ELet p str2 (s e1) (s e2)
-    recur func@(EVal (EFunc p funcStr funcE))
+    recur (ELet p str2 e1 e2 t) = ELet p str2 (s e1) (s e2) t
+    recur func@(EVal (EFunc p funcStr funcE t))
         | str == funcStr = func -- avoid variable shadowing.
-        | otherwise = EVal (EFunc p funcStr (s funcE)) -- freely substite variables of name str in funcE
+        | otherwise = EVal (EFunc p funcStr (s funcE) t) -- freely substite variables of name str in funcE
     recur (EApp p e1 e2) = EApp p (s e1) (s e2)
     recur e = e 
 
@@ -127,5 +146,5 @@ evalFinal (EVal v1) = case v1 of
     (EInt _ i) -> putStrLn $ show i
     (EFloat _ i) -> putStrLn $ show i
     (ENaN _) -> putStrLn $ show "NaN"
-    (EFunc _ s exp) -> putStrLn $ show v1
+    _ -> putStrLn $ show v1 
 evalFinal e = putStrLn $ show e --error "Invalid argument"

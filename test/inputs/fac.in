@@ -1,1 +1,1 @@
-let fac = fix f x -> if x <= 1 then x else x*f~(x-1) in fac~5
+let fac :: int -> int = fix f (x :: int) :: int --> if x <= 1 then x else x*f~(x-1) in fac~5
