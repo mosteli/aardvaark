@@ -47,6 +47,7 @@ Where n is a number of the form of an integer or float and var is an alphabetica
 
 ## Changelog
 #### 3/12/2018
+##### New Features
 - Addition of lists, pairs and typechecking
 - Made testing scripts better
 - Added tests for new features
@@ -58,7 +59,7 @@ Where n is a number of the form of an integer or float and var is an alphabetica
 - Implemented small-step semantics
 
 #### 2/18/2018
-##### New FEatures
+##### New Features
 - Addition of if statements
 - No longer using LISP-like syntax
 - Can use lexer and parser flags to see lexer and parser output
