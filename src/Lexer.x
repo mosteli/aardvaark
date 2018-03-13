@@ -15,6 +15,12 @@ $alpha = [a-zA-Z]
 
 tokens :-
 $white+       ;
+ref           { (\p s -> TRef p)             }
+\!            { (\p s -> TBang p)            }
+\;            { (\p s -> TSemiColon p)       }
+\=\:          { (\p s -> TAssignment p)      }
+\>            { (\p s -> TGreater p)         }
+\<            { (\p s -> TLess p)          }
 \:\:          { (\p s -> TTypeOf p)          }
 \(            { (\p s -> TLParen p)          }
 \)            { (\p s -> TRParen p)          }
@@ -54,6 +60,7 @@ tail          { (\p s -> TTail p)            }
 \[            { (\p s -> TLBrack p)          }
 \]            { (\p s -> TRBrack p)          }
 \-\-\>        { (\p s -> TLongArrow p)       }
+
 
 {
 
@@ -98,6 +105,12 @@ data Token =
   | TRBrack AlexPosn 
   | TLongArrow AlexPosn 
   | TEmptyList AlexPosn 
+  | TRef AlexPosn 
+  | TBang AlexPosn 
+  | TAssignment AlexPosn
+  | TSemiColon AlexPosn 
+  | TGreater AlexPosn 
+  | TLess AlexPosn
   deriving (Eq)
 
 -- Extracts AlexPosn from a given token
@@ -142,6 +155,12 @@ tokLoc (TLBrack p) = alexPosnToPos p
 tokLoc (TRBrack p) = alexPosnToPos p 
 tokLoc (TLongArrow p) = alexPosnToPos p 
 tokLoc (TEmptyList p) = alexPosnToPos p
+tokLoc (TRef p) = alexPosnToPos p
+tokLoc (TBang p) = alexPosnToPos p
+tokLoc (TSemiColon p) = alexPosnToPos p
+tokLoc (TAssignment p) = alexPosnToPos p
+tokLoc (TGreater p) = alexPosnToPos p
+tokLoc (TLess p) = alexPosnToPos p
 
 alexPosnToPos :: AlexPosn -> Pos
 alexPosnToPos (AlexPn o l c) = Pos o l c
@@ -187,4 +206,10 @@ instance Show Token where
   show (TTypeOf _) = "::"
   show (TLongArrow _) = "-->"
   show (TEmptyList _) = "[]"
+  show (TRef _ ) = "ref" 
+  show (TBang _ ) = "!"
+  show (TSemiColon _ ) = ";"
+  show (TAssignment _ ) = ":=" 
+  show (TGreater _)  = ">"
+  show (TLess _ ) = "<"
 }
