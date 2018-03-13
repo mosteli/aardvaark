@@ -34,11 +34,22 @@ from the root of the project.
 Syntax:
 ```
 e ::= n | e1 + e2 | e1 - e2 | e1 * e2) | e1 / e2
-    | true | false | (<= e1 e2) | if e1 e2 e3 | func var -> e
-    | fix var var -> e
+    | true | false | (<= e1 e2) | if e1 e2 e3 | func (var :: t1) :: t2 -> e
+    | fix var (var :: t1) :: t2 -> e | e1~e2 | (e1, e2) | [] :: t  | e : [t]
+    | head [t] | tail [t] | empty [t]
+
+[t] means a list of elements of type t.
+
+t ::= bool | int | float | t1 -> t2 | [t]
 ```
 
 Where n is a number of the form of an integer or float and var is an alphabetical string for a variable name.
+
+## Changelog
+#### 3/12/2018
+- Addition of lists, pairs and typechecking
+- Made testing scripts better
+- Added tests for new features
 
 ## Changelog
 #### 3/8/2018
