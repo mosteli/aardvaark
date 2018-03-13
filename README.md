@@ -52,7 +52,6 @@ Where n is a number of the form of an integer or float and var is an alphabetica
 - Made testing scripts better
 - Added tests for new features
 
-## Changelog
 #### 3/8/2018
 - Addition of functions and fix functions
 - Revamped test suite
