@@ -1,0 +1,1 @@
+let e :: (int, int) = (1, 2) in fst e

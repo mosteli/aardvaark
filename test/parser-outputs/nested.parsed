@@ -1,1 +1,1 @@
-EBinop  Add (EVal 1) (EBinop  Mul (EVal 1) (EBinop  Div (EVal 4.0) (EVal 5)))
+EBinop  Add (EVal 1) (EBinop  Mul (EVal 1) (EBinop  Div (EVal 4) (EVal 5)))

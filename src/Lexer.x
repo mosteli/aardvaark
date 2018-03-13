@@ -40,8 +40,20 @@ int           { (\p s -> TIntType    p)      }
 float         { (\p s -> TFloatType  p)      }
 bool          { (\p s -> TBoolType   p)      }
 fix           { (\p s -> TFix p)             }
+fst           { (\p s -> TFst p)             }
+snd           { (\p s -> TSnd p)             }
+empty         { (\p s -> TEmpty p)           }
+head          { (\p s -> THead  p)           }
+tail          { (\p s -> TTail p)            }
+\:            { (\p s -> TCons p)            }
 @variable     { (\p s -> TVariable p s)      }
 \~            { (\p s -> TApply p)           }
+\(\)          { (\p s -> TUnit p)            }
+\,            { (\p s -> TComma p)           }
+\[\]          { (\p s -> TEmptyList p)       }
+\[            { (\p s -> TLBrack p)          }
+\]            { (\p s -> TRBrack p)          }
+\-\-\>        { (\p s -> TLongArrow p)       }
 
 {
 
@@ -74,6 +86,18 @@ data Token =
   | TIntType AlexPosn
   | TFloatType AlexPosn
   | TBoolType AlexPosn
+  | TUnit AlexPosn 
+  | TComma AlexPosn 
+  | TFst AlexPosn 
+  | TSnd AlexPosn 
+  | TEmpty AlexPosn 
+  | THead AlexPosn 
+  | TTail AlexPosn
+  | TCons AlexPosn 
+  | TLBrack AlexPosn 
+  | TRBrack AlexPosn 
+  | TLongArrow AlexPosn 
+  | TEmptyList AlexPosn 
   deriving (Eq)
 
 -- Extracts AlexPosn from a given token
@@ -106,6 +130,18 @@ tokLoc (TFix p) = alexPosnToPos p
 tokLoc (TIntType p) = alexPosnToPos p 
 tokLoc (TFloatType p) = alexPosnToPos p 
 tokLoc (TBoolType p) = alexPosnToPos p
+tokLoc (TUnit p) = alexPosnToPos p 
+tokLoc (TComma p) = alexPosnToPos p 
+tokLoc (TFst p) = alexPosnToPos p 
+tokLoc (TSnd p) = alexPosnToPos p 
+tokLoc (THead p) = alexPosnToPos p 
+tokLoc (TTail p) = alexPosnToPos p 
+tokLoc (TCons p) = alexPosnToPos p 
+tokLoc (TEmpty p) = alexPosnToPos p 
+tokLoc (TLBrack p) = alexPosnToPos p 
+tokLoc (TRBrack p) = alexPosnToPos p 
+tokLoc (TLongArrow p) = alexPosnToPos p 
+tokLoc (TEmptyList p) = alexPosnToPos p
 
 alexPosnToPos :: AlexPosn -> Pos
 alexPosnToPos (AlexPn o l c) = Pos o l c
@@ -138,5 +174,17 @@ instance Show Token where
   show (TIntType _) = "int"
   show (TFloatType _) = "float"
   show (TBoolType _) = "bool"
-
+  show (TUnit _) = "()"
+  show (TComma _) = ","
+  show (TFst   _) = "fst"
+  show (TSnd   _) = "snd" 
+  show (THead _) = "head" 
+  show (TTail _) = "tail"
+  show (TEmpty _) = "empty" 
+  show (TCons _) = ":"
+  show (TLBrack _) = "["
+  show (TRBrack _) = "]"
+  show (TTypeOf _) = "::"
+  show (TLongArrow _) = "-->"
+  show (TEmptyList _) = "[]"
 }

@@ -59,90 +59,24 @@ eval (EApp p e1 e2) = case (e1, e2) of
         _ -> error $ (ppPos p) ++ " Application of function to expression which did not resolve to a value"
     (_, _) -> EApp p (eval e1) (eval e2)
 
+eval (EFst _ e1) = eval e1 
+eval (ESnd _ e2) = eval e2
+eval (EEmpty p e1) = 
+    case e1 of 
+        (EVal (ENil _ _)) -> EVal $ EBool p True
+        _          -> EVal $ EBool p False 
+eval (EHead p e) = 
+    case e of 
+        (EVal (ECons p e1 e2)) -> eval e1 
+        (EVal (ENil _ _)) -> error $ (ppPos p) ++ " Application of head on empty list"
+        _ -> error $ (ppPos p) ++ " Application of head on non-list type"
+eval (ETail p e) = 
+    case e of 
+        (EVal (ECons p e1 e2)) -> eval e2 
+        (EVal (ENil _ _)) -> error $ (ppPos p) ++ " Application of tail on empty list"
+        _ -> error $ (ppPos p) ++ " Application of tail on non-list type"
+
 eval e1 = e1
-
--- Error checking 
--- Code style 
--- Ctx passing scheme
-
--- typecheck :: Exp -> Reader TypeEnv Exp
--- typecheck (EBinop _ op e1 e2) = do 
---     (TypEnv env) <- ask
---     return $ 
-
-typecheck' :: Exp -> YType
-typecheck' e = runReader (typecheck e) (TypeEnv Map.empty)
-
-typecheck :: Exp -> Reader TypeEnv YType
-typecheck binop@(EBinop _ _ e1 e2) = do
-    t1 <- typecheck e1
-    t2 <- typecheck e2
-    if t1 == t2 
-        then return t1 
-        else error $ pTypeError binop
-typecheck ev@(EVal v) = case v of 
-    (EInt p _) -> return YInt
-    (EFloat p _) -> return YFloat
-    (EBool p _) -> return YBool
-    (ENaN p) -> return YFloat
-    f@(EFunc p str e1 typ) ->
-        case typ of 
-            (YApp paramType expectedReturnType) -> do 
-                actualReturnType <- 
-                    local (insertType str paramType) $ typecheck e1
-                if expectedReturnType == actualReturnType 
-                    then return expectedReturnType
-                    else error $ pTypeError $ EVal f
-            _ -> error $ "Invalid type given for function" -- TODO fix
-typecheck evar@(EVar _ varName) = do
-    (TypeEnv env) <- ask
-    case Map.lookup varName env of 
-        Just varType -> return varType
-        Nothing -> error $ pTypeError evar
-typecheck lte@(ELessEqThan _ e1 e2) = do
-    t1 <- typecheck e1 
-    t2 <- typecheck e2
-    if t1 == t2
-        then return t1 
-        else error $ pTypeError lte 
-typecheck eif@(EIf _ e1 e2 e3) = do 
-    t1 <- typecheck e1 
-    t2 <- typecheck e2 
-    t3 <- typecheck e3 
-    if not (t1 == YBool)
-        then error $ pTypeError eif 
-        else if t2 == t3
-            then return t2 
-            else error $ pTypeError eif 
-typecheck eapp@(EApp _ e1 e2) = do 
-    t1 <- typecheck e1 
-    t2 <- typecheck e2
-    case t1 of 
-        (YApp paramType returnType) -> if t2 == returnType
-            then return t2 
-            else error $ pTypeError eapp 
-        _ -> error $ pTypeError eapp 
-typecheck elet@(ELet _ str e1 e2 typ) = do 
-    t1 <- typecheck e1 
-    if t1 == typ 
-        then local (insertType str typ) $ typecheck e2 
-        else error $ pTypeError elet 
-
-insertType :: String -> YType -> TypeEnv -> TypeEnv
-insertType str typ (TypeEnv m) = TypeEnv (Map.insert str typ m)
-
-pTypeError :: Exp -> String
-pTypeError e = "Type mismatch on " ++ (show e)
-
--- typecheck (ELessEqThan _ e1 e2)
---     | t1 == t2 = t1
---     | otherwise =
---         error "ELessEqThan expression given differing types: " ++ (show t1) ++ " and " ++ (show t2)
--- typecheck (EIf _ e1 e2 e3) = undefined
--- typecheck (ELet _ s e1 e2) = undefined
--- typecheck (EVal v1) = undefined
--- typecheck (EVar _ s) = undefined
--- typecheck (EApp _ e1 e2) = undefined
 
 deepEval :: Exp -> Exp
 deepEval v@(EVal _) = v
@@ -212,6 +146,5 @@ evalFinal (EVal v1) = case v1 of
     (EInt _ i) -> putStrLn $ show i
     (EFloat _ i) -> putStrLn $ show i
     (ENaN _) -> putStrLn $ show "NaN"
-    (EFunc _ s exp t) -> putStrLn $ show v1
-    (EFix _ s1 s2 exp t) -> putStrLn $ show v1
+    _ -> putStrLn $ show v1 
 evalFinal e = putStrLn $ show e --error "Invalid argument"

@@ -1,1 +1,1 @@
-ELet  "x" (EVal Efunc x -> EVar  "x") (EApp  (EVar  "x") (EVal 3))
+ELet  "f" (EVal EFunc YApp YInt YIntx -> EVar  "x") (EApp  (EVar  "f") (EVal 3)) (YApp YInt YInt)

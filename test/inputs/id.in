@@ -1,1 +1,1 @@
-let x = func x -> x in x~3
+let f :: int -> int = func (x :: int) :: int --> x in f~3

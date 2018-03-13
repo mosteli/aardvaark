@@ -1,9 +1,0 @@
-aardvark - a fuzzy animal compiler
-
-Usage: aardvark-exe [-l|--lex] [-p|--parse] program
-  Compile some arithmetic expressions!
-
-Available options:
-  -l,--lex                 Prints the output of the lexer for a given input.
-  -p,--parse               Prints the output of the parser for a given input.
-  -h,--help                Show this help text

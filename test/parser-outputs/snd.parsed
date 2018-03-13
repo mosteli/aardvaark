@@ -1,0 +1,1 @@
+ELet  "e" (EVal EPair EVal 1 EVal 2) (ESnd  (EVar  "e")) (YPair YInt YInt)
