@@ -60,17 +60,6 @@ data YType =
 
 newtype TypeEnv = TypeEnv (Map.Map String YType)
 
--- instance Show Exp where
---   show (EBinop p op e1 e2) = (show op) ++ (show e1) ++ (show e2)
---   show (ELessEqThan p e1 e2) = " <= " ++ (show e1) ++ (show e2)
---   show (EIf _ e1 e2 e3) = "if " ++ (show e1) ++ " then " ++ (show e2)
---     ++ " else " ++ (show e3)
---   show (ELet _ s e1 e2) = "let " ++ s ++ " = " ++ (show e1) ++ " in"
---     ++ (show e2)
---   show (EVal v1) = show v1
---   show (EVar _ s) = "var " ++ s 
---   show (EApp _ e1 e2) = (show e1) ++ "~" ++ (show e2)
-
 instance Show EValue where
   show (EInt _ i) = show i 
   show (EFloat _ f) = show f 

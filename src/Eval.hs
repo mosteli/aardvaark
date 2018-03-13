@@ -139,7 +139,12 @@ subst val str e = recur e
         | str == funcStr = func -- avoid variable shadowing.
         | otherwise = EVal (EFunc p funcStr (s funcE) t) -- freely substite variables of name str in funcE
     recur (EApp p e1 e2) = EApp p (s e1) (s e2)
-    recur e = e 
+    recur (EFst p e) = EFst p (s e)
+    recur (ESnd p e) = ESnd p (s e)
+    recur (EEmpty p e) = EEmpty p (s e)
+    recur (EHead p e) = EHead p (s e)
+    recur (ETail p e) = ETail p (s e)
+    recur e = e
 
 evalFinal :: Exp -> IO ()
 evalFinal (EVal v1) = case v1 of 

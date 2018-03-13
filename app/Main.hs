@@ -29,7 +29,7 @@ greetBasic (Basic lex par read step prog)
         let e = P.parser $ L.alexScanTokens input in
             let t = TC.typecheck' e in
                 case t of
-                    _ -> putStrLn $ show t  
+                    _ -> E.evalFinal $ E.deepEval $ P.parser $ L.alexScanTokens input
                     G.YBool -> E.evalFinal $ E.deepEval $ P.parser $ L.alexScanTokens input
     | step = E.showExecutionSteps $ parsed
     | lex = putStrLn $ show $ lexed
@@ -40,7 +40,9 @@ greetBasic (Basic lex par read step prog)
         then putStrLn "No tokens were parsed. Did you pass an empty file?"
         else
             let t = TC.typecheck' parsed in
-                E.evalFinal $ E.deepEval $ parsed
+                case t of 
+                    _ -> E.evalFinal $ E.deepEval $ parsed
+                    G.YBool -> E.evalFinal $ E.deepEval $ parsed
     where
         lexed = L.alexScanTokens prog
         parsed = P.parser $ lexed
