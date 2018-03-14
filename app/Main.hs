@@ -24,6 +24,9 @@ greetBasic (Basic lex par read step prog)
     | read && par = do
         input <- readFile prog
         putStrLn $ show $ P.parser $ L.alexScanTokens input
+    | read && step = do
+        input <- readFile prog 
+        E.showExecutionSteps [] $ P.parser $ L.alexScanTokens input
     | read = do
         input <- readFile prog
         let e = P.parser $ L.alexScanTokens input in

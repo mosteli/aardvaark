@@ -27,10 +27,10 @@ data Exp =
     | ETail Pos Exp  
     | EEmpty Pos Exp 
     | ERef Pos Exp
-    | EPtr Int 
     | EBang Pos Exp 
     | EAssignment Pos Exp Exp 
     | EStatement Pos Exp Exp 
+    | EWhile Pos Exp Exp Exp Exp
     deriving (Show, Eq)
 
 data EOptype = 
@@ -52,6 +52,7 @@ data EValue =
   | ECons Pos Exp Exp
   | EUnit Pos 
   | EEvalUnit 
+  | EPtr Int
   deriving (Eq)
 
 data YType = 
@@ -80,3 +81,4 @@ instance Show EValue where
   show EEvalUnit = "EEvalUnit"
   show (ECons _ e1 e2) = "ECons " ++ (show e1) ++ " " ++ (show e2)
   show (ENil _ typ) = "ENil " ++ (show typ)
+  show (EPtr i) = "EPtr " ++ (show i)

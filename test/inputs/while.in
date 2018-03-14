@@ -1,0 +1,5 @@
+let e :: <int> = ref 1 in
+while (!e <= 5) do 
+  e <- !e + 1
+end;
+!e
