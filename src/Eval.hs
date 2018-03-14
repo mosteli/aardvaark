@@ -39,7 +39,8 @@ eval env (EIf p e1 e2 e3) = case e1 of
         (EBool _ True) -> (env, e2)
         (EBool _ False) -> (env, e3)
         _ -> error $ "Type mismatch at column " ++ show (col p) ++ ", line " ++ show (line p)
-    elte@(ELessEqThan _ r1 r2) -> eval env elte
+    elte@(ELessEqThan _ r1 r2) -> case eval env elte of 
+        (env2, newE1) -> (env2, EIf p newE1 e2 e3)
 
 eval env (ELessEqThan p e1 e2) = case (e1, e2) of
     (EVal v1, EVal v2) -> case (v1, v2) of 
@@ -63,9 +64,9 @@ eval env (ELet _ s (EVal v) e2 _) = (env, subst v s e2)
 eval env (ELet p s e1 e2 t) = case eval env e1 of
     (env2, exp2) -> (env2, ELet p s exp2 e2 t)
 
-eval env (EApp p e1 e2) = case (e1, e2) of
+eval env eapp@(EApp p e1 e2) = case (e1, e2) of
     (EVal v1, EVal v2) -> case v1 of
-        (EFunc _ s funcExp _) -> (env, subst v2 s funcExp) -- seems good 
+        (EFunc _ s funcExp _) -> (env, subst v2 s funcExp)
         fix@(EFix _ funcName varName funcExp _) -> let varReplaced = subst v2 varName funcExp 
                                                    in (env, subst fix funcName varReplaced)
         _ -> error $ (ppPos p) ++ " Function application operator applied where first paramater is not a function"
@@ -74,6 +75,8 @@ eval env (EApp p e1 e2) = case (e1, e2) of
         b@(EBinop _ _ _ _) -> case eval env b of 
             (env2, exp2) -> (env2, EApp p e1 exp2)
         _ -> error $ (ppPos p) ++ " Application of function to expression which did not resolve to a value"
+    (EApp _ a1 a2, _) -> case eval env e1 of 
+        (env2, newE1) -> (env2, EApp p newE1 e2)
     (_, _) -> case eval env e1 of
         (env2, exp2) -> case eval env e2 of
             (env3, exp3) -> (env2 ++ env3, EApp p exp2 exp3)
@@ -145,21 +148,19 @@ subst :: EValue -- Value to substitute in
     -> Exp -- Expression to do substituting in
     -> Exp -- Resulting expression with pertinent variables with name String substituted for EValue
 subst val str var@(EVar _ s) = if s == str then EVal val else var
-subst val str (EVal (EFunc p funcStr funcE t))
-    | str == funcStr = error $ "here" -- EVal (EFunc p funcStr (subst val str funcE) t)
-    | otherwise      = error $ "here" -- EVal (EFunc p funcStr (subst val str funcE) t)
+subst val str (EVal (EFunc p funcStr funcE t)) = EVal (EFunc p funcStr (subst val str funcE) t)
 subst val str e = recur e 
  where
     s = subst val str 
     recur :: Exp -> Exp
     recur (EBinop p  op e1 e2) = EBinop p op (s e1) (s e2)
     recur (ELessEqThan p e1 e2) = ELessEqThan p (s e1) (s e2)
-    recur (EIf p e1 e2 e3) = error $ "here " --EIf p (s e1) (s e2) (s e3)
+    recur (EIf p e1 e2 e3) = EIf p (s e1) (s e2) (s e3)
     recur (ELet p str2 e1 e2 t) = ELet p str2 (s e1) (s e2) t
     recur func@(EVal (EFunc p funcStr funcE t))
         | str == funcStr = func -- avoid variable shadowing.
-        | otherwise = EVal (EFunc p funcStr (s funcE) t) -- freely substite variables of name str in funcE
-    recur (EApp p e1 e2)  = EApp p (s e1) e2
+       | otherwise = EVal (EFunc p funcStr (s funcE) t) -- freely substite variables of name str in funcE
+    recur (EApp p e1 e2)  = EApp p (s e1) (s e2)
     recur (EFst p e1)     = EFst p (s e1)
     recur (ESnd p e1)     = ESnd p (s e1)
     recur (EEmpty p e1)   = EEmpty p (s e1)
@@ -170,7 +171,6 @@ subst val str e = recur e
     recur (EAssignment p e1 e2) = EAssignment p (s e1) (s e2)
     recur (EStatement p e1 e2) = EStatement p (s e1) (s e2)
     recur (EWhile p e1 e2 e3 e4) = EWhile p (s e1) (s e2) (s e3) (s e4)
-    recur (EVal v) = error $ "recur on value: " ++ (show v)
     recur e = e -- Keeps uninvolved expressions the way they are
 
 evalFinal :: Exp -> IO ()
