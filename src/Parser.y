@@ -10,8 +10,11 @@ import Grammar
 %tokentype { Token }
 
 %right '->'
-%left '+' '-'
+%left '+' '-' '<='
 %left '*' '/'
+%left '!'
+%left ';'
+%left '<-'
 
 %token
   '::'  { TTypeOf _ }
@@ -29,6 +32,8 @@ import Grammar
   nan   { TNaN _    }
   int   { TInt _ _ }
   float { TFloat _ _ }
+  '<'   { TLess _ }
+  '>'   { TGreater _ }
   '<='  { TLessThan _ }
   let   { TLet _      }
   in    { TIn  _      }
@@ -53,6 +58,13 @@ import Grammar
   '['       { TLBrack _ }
   ']'       { TRBrack _ }
   '-->'     { TLongArrow _ }
+  ref       { TRef _ }
+  '!'       { TBang _ }
+  '<-'      { TAssignment _ }
+  ';'       { TSemiColon _ }
+  while     { TWhile _ }
+  do        { TDo _ }
+  end       { TEnd _ }
 
 %%
 
@@ -85,11 +97,15 @@ Exp0 : if Exp0 then Exp0 else Exp0 { EIf (tokLoc $1) $2 $4 $6 }
             (tokLoc $1)
             $2
             $4) }
+     | while Exp0 do Exp0 end      { EWhile (tokLoc $1) $2 $4 $2 $4 }
      | fst Exp0                    { EFst (tokLoc $1) $2   }
      | snd Exp0                    { ESnd (tokLoc $1) $2   }
      | head Exp0                   { EHead (tokLoc $1) $2  }
      | tail Exp0                   { ETail (tokLoc $1) $2  }
      | empty Exp0                  { EEmpty (tokLoc $1) $2 }
+     | ref Exp0                    { ERef (tokLoc $1) $2   }
+     | Exp0 '<-' Exp0              { EAssignment (tokLoc $2) $1 $3 }
+     | Exp0 ';' Exp0               { EStatement (tokLoc $2) $1 $3  }  
      | List                        { $1 }
      | '(' Exp0 ')'                { $2 }
      | Exp1                        { $1 }
@@ -97,6 +113,7 @@ Exp0 : if Exp0 then Exp0 else Exp0 { EIf (tokLoc $1) $2 $4 $6 }
 Type : typeInt               { YInt   }
      | typeFloat             { YFloat }
      | typeBool              { YBool  }
+     | '<' Type '>'          { YRef $2  }
      | Type '->' Type        { YApp $1 $3  }
      | '(' Type ',' Type ')' { YPair $2 $4 }
      | '[' Type ']'          { YList $2    }
@@ -118,6 +135,7 @@ Exp1 : Exp1 '+' Exp1           { EBinop (tokLoc $2) Add $1 $3    }
     | Exp1 '<=' Exp1           { ELessEqThan (tokLoc $2) $1 $3   }
     | var                      { EVar (tokLoc $1) (varString $1) }
     | unit                     { EVal (EUnit (tokLoc $1))        }
+    |'!' Exp1                  { EBang (tokLoc $1) $2            }
 
 {
 

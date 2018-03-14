@@ -109,7 +109,34 @@ typecheck eempty@(EEmpty _ e) = do
   case t1 of 
     (YList t) -> return YBool 
     _ -> error $ pTypeError eempty  
-
+typecheck (ERef _ e) = do 
+    t1 <- typecheck e
+    return $ YRef t1
+typecheck ebang@(EBang _ e) = do 
+    t1 <- typecheck e
+    case t1 of 
+        (YRef enclosedType) -> return enclosedType
+        _ -> error $ pTypeError ebang  
+typecheck eassign@(EAssignment _ e1 e2) = do
+    t1 <- typecheck e1
+    typeOfExpressionBeingAssigned <- typecheck e2 
+    case t1 of 
+        (YRef enclosedType) -> if enclosedType == typeOfExpressionBeingAssigned
+            then return $ YUnit
+            else error $ pTypeError eassign
+typecheck estmt@(EStatement _ e1 e2) = do
+    t1 <- typecheck e1 
+    t2 <- typecheck e2 
+    case t1 of 
+        YUnit -> return t2 
+        _ -> error $ pTypeError estmt
+typecheck ewhile@(EWhile _ e1 e2 e3 e4) = do
+    t1 <- typecheck e1 
+    t2 <- typecheck e2 
+    case (t1, t2) of 
+        (YBool, YUnit) -> return YUnit 
+        (_, _) -> error $ pTypeError ewhile
+    
 insertType :: String -> YType -> TypeEnv -> TypeEnv
 insertType str typ (TypeEnv m) = TypeEnv (Map.insert str typ m)
 

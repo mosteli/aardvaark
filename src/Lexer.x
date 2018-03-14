@@ -15,6 +15,12 @@ $alpha = [a-zA-Z]
 
 tokens :-
 $white+       ;
+ref           { (\p s -> TRef p)             }
+\!            { (\p s -> TBang p)            }
+\;            { (\p s -> TSemiColon p)       }
+\<\-          { (\p s -> TAssignment p)      }
+\>            { (\p s -> TGreater p)         }
+\<            { (\p s -> TLess p)          }
 \:\:          { (\p s -> TTypeOf p)          }
 \(            { (\p s -> TLParen p)          }
 \)            { (\p s -> TRParen p)          }
@@ -45,6 +51,9 @@ snd           { (\p s -> TSnd p)             }
 empty         { (\p s -> TEmpty p)           }
 head          { (\p s -> THead  p)           }
 tail          { (\p s -> TTail p)            }
+while         { (\p s -> TWhile p)           }
+do            { (\p s -> TDo p)              }
+end           { (\p s -> TEnd p)             }
 \:            { (\p s -> TCons p)            }
 @variable     { (\p s -> TVariable p s)      }
 \~            { (\p s -> TApply p)           }
@@ -98,6 +107,15 @@ data Token =
   | TRBrack AlexPosn 
   | TLongArrow AlexPosn 
   | TEmptyList AlexPosn 
+  | TRef AlexPosn 
+  | TBang AlexPosn 
+  | TAssignment AlexPosn
+  | TSemiColon AlexPosn 
+  | TGreater AlexPosn 
+  | TLess AlexPosn
+  | TWhile AlexPosn 
+  | TDo AlexPosn 
+  | TEnd AlexPosn
   deriving (Eq)
 
 -- Extracts AlexPosn from a given token
@@ -142,6 +160,15 @@ tokLoc (TLBrack p) = alexPosnToPos p
 tokLoc (TRBrack p) = alexPosnToPos p 
 tokLoc (TLongArrow p) = alexPosnToPos p 
 tokLoc (TEmptyList p) = alexPosnToPos p
+tokLoc (TRef p) = alexPosnToPos p
+tokLoc (TBang p) = alexPosnToPos p
+tokLoc (TSemiColon p) = alexPosnToPos p
+tokLoc (TAssignment p) = alexPosnToPos p
+tokLoc (TGreater p) = alexPosnToPos p
+tokLoc (TLess p) = alexPosnToPos p
+tokLoc (TWhile p) = alexPosnToPos p 
+tokLoc (TDo p) = alexPosnToPos p
+tokLoc (TEnd p) = alexPosnToPos p
 
 alexPosnToPos :: AlexPosn -> Pos
 alexPosnToPos (AlexPn o l c) = Pos o l c
@@ -187,4 +214,13 @@ instance Show Token where
   show (TTypeOf _) = "::"
   show (TLongArrow _) = "-->"
   show (TEmptyList _) = "[]"
+  show (TRef _ ) = "ref" 
+  show (TBang _ ) = "!"
+  show (TSemiColon _ ) = ";"
+  show (TAssignment _ ) = "<-" 
+  show (TGreater _)  = ">"
+  show (TLess _ ) = "<"
+  show (TWhile _) = "while"
+  show (TDo _) = "do"
+  show (TEnd _) = "end"
 }

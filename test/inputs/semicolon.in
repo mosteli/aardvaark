@@ -1,0 +1,3 @@
+let e :: <int> = ref 1 in 
+e <- 2;
+!e

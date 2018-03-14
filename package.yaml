@@ -31,6 +31,7 @@ library:
     - array
     - containers
     - mtl
+    - base
 
 executables:
   aardvark-exe:
