@@ -48,6 +48,15 @@ typecheck (EVal v) = case v of
                     then return t2 
                     else error $ pTypeError $ EVal econs
             _ -> error $ pTypeError $ EVal econs
+    erec@(ERecordField _ str typ e1 rest) -> do 
+        t1 <- typecheck e1 
+        t2 <- typecheck rest
+        if t1 == typ
+            then case t2 of 
+                YRecordField ls -> return $ YRecordField ((str, typ):ls)
+                _ -> error $ pTypeError rest 
+            else error $ pTypeError $ EVal erec
+    (ERecordEnd _) -> return $ YRecordField []
 typecheck evar@(EVar _ varName) = do
     (TypeEnv env) <- ask
     case Map.lookup varName env of 
@@ -65,7 +74,7 @@ typecheck eif@(EIf _ e1 e2 e3) = do
     t3 <- typecheck e3 
     (TypeEnv te) <- ask
     if not (t1 == YBool)
-        then error $ (show te) ++ (pTypeError eif)
+        then error $ (show te) ++ pTypeError eif
         else if t2 == t3
             then return t2 
             else error $ pTypeError eif 
@@ -122,7 +131,7 @@ typecheck eassign@(EAssignment _ e1 e2) = do
     typeOfExpressionBeingAssigned <- typecheck e2 
     case t1 of 
         (YRef enclosedType) -> if enclosedType == typeOfExpressionBeingAssigned
-            then return $ YUnit
+            then return YUnit
             else error $ pTypeError eassign
 typecheck estmt@(EStatement _ e1 e2) = do
     t1 <- typecheck e1 
@@ -136,7 +145,15 @@ typecheck ewhile@(EWhile _ e1 e2 e3 e4) = do
     case (t1, t2) of 
         (YBool, YUnit) -> return YUnit 
         (_, _) -> error $ pTypeError ewhile
-    
+typecheck egetfield@(EGetField _ str e) = do 
+    t1 <- typecheck e 
+    case t1 of 
+        YRecordField ls -> 
+            case lookup str ls of 
+                Just fieldType -> return fieldType 
+                Nothing -> error $ "getField called on record without given field"
+        _ -> error $ pTypeError egetfield 
+
 insertType :: String -> YType -> TypeEnv -> TypeEnv
 insertType str typ (TypeEnv m) = TypeEnv (Map.insert str typ m)
 
@@ -151,4 +168,4 @@ insertList ls (TypeEnv env) = TypeEnv $ helper ls env
             helper ls $ Map.insert str typ m
 
 pTypeError :: Exp -> String
-pTypeError e = "Type mismatch on " ++ (show e)
+pTypeError e = "Type mismatch on " ++ show e

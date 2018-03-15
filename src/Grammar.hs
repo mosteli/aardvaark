@@ -31,6 +31,7 @@ data Exp =
     | EAssignment Pos Exp Exp 
     | EStatement Pos Exp Exp 
     | EWhile Pos Exp Exp Exp Exp
+    | EGetField Pos String Exp
     deriving (Show, Eq)
 
 data EOptype = 
@@ -50,6 +51,8 @@ data EValue =
   | EPair Pos Exp Exp
   | ENil Pos YType 
   | ECons Pos Exp Exp
+  | ERecordField Pos String YType Exp Exp 
+  | ERecordEnd Pos
   | EUnit Pos 
   | EEvalUnit 
   | EPtr Int
@@ -64,9 +67,11 @@ data YType =
   | YPair YType YType
   | YList YType
   | YRef YType
+  | YRecordField [(String, YType)]
   deriving (Eq, Show)
 
 newtype TypeEnv = TypeEnv (Map.Map String YType)
+
 type EvalEnv = [(Int, EValue)]
 
 instance Show EValue where
@@ -82,3 +87,6 @@ instance Show EValue where
   show (ECons _ e1 e2) = "ECons " ++ (show e1) ++ " " ++ (show e2)
   show (ENil _ typ) = "ENil " ++ (show typ)
   show (EPtr i) = "EPtr " ++ (show i)
+  show (ERecordField _ str typ e1 rest) = "record " ++ (show str) ++ " :: " 
+    ++ (show typ) ++ " = " ++ (show e1) ++ " " ++ (show rest)
+  show (ERecordEnd _) = "recordEnd" 

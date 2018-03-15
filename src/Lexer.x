@@ -54,6 +54,10 @@ tail          { (\p s -> TTail p)            }
 while         { (\p s -> TWhile p)           }
 do            { (\p s -> TDo p)              }
 end           { (\p s -> TEnd p)             }
+record        { (\p s -> TRecord p)          }
+recordEnd     { (\p s -> TRecordEnd p)       }
+with          { (\p s -> TWith p)            }
+get           { (\p s -> TGet p)             }
 \:            { (\p s -> TCons p)            }
 @variable     { (\p s -> TVariable p s)      }
 \~            { (\p s -> TApply p)           }
@@ -116,6 +120,10 @@ data Token =
   | TWhile AlexPosn 
   | TDo AlexPosn 
   | TEnd AlexPosn
+  | TRecord AlexPosn 
+  | TRecordEnd AlexPosn 
+  | TWith AlexPosn
+  | TGet AlexPosn
   deriving (Eq)
 
 -- Extracts AlexPosn from a given token
@@ -169,6 +177,10 @@ tokLoc (TLess p) = alexPosnToPos p
 tokLoc (TWhile p) = alexPosnToPos p 
 tokLoc (TDo p) = alexPosnToPos p
 tokLoc (TEnd p) = alexPosnToPos p
+tokLoc (TRecord p) = alexPosnToPos p 
+tokLoc (TRecordEnd p) = alexPosnToPos p 
+tokLoc (TWith p) = alexPosnToPos p 
+tokLoc (TGet p) = alexPosnToPos p 
 
 alexPosnToPos :: AlexPosn -> Pos
 alexPosnToPos (AlexPn o l c) = Pos o l c
@@ -223,4 +235,8 @@ instance Show Token where
   show (TWhile _) = "while"
   show (TDo _) = "do"
   show (TEnd _) = "end"
+  show (TRecord _) = "record" 
+  show (TRecordEnd _) = "recordEnd"
+  show (TWith _) = "with" 
+  show (TGet _) = "get" 
 }

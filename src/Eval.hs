@@ -141,6 +141,17 @@ eval env (EWhile p cachedBool cachedBody bool body) =
         _ -> case eval env bool of 
             (env2, newBool) -> (env2, EWhile p cachedBool cachedBody newBool body)
 
+eval env (EGetField p soughtField (EVal v)) = 
+    case v of 
+        (ERecordField _ fieldName typ e rest) -> 
+            if soughtField == fieldName 
+                then (env, e) 
+                else eval env rest 
+        ERecordEnd _ -> error $ (ppPos p) ++ "Sought field not found in record" 
+        _ -> error $ (ppPos p) ++ "Non-record value in get call expression"
+eval env (EGetField p soughtField e) = case eval env e of 
+    (env2, newE1) -> (env2, EGetField p soughtField newE1) 
+
 eval env e1 = eval env e1
 -- 
 subst :: EValue -- Value to substitute in  

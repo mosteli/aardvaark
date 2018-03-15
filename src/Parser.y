@@ -65,6 +65,10 @@ import Grammar
   while     { TWhile _ }
   do        { TDo _ }
   end       { TEnd _ }
+  record    { TRecord _ }
+  recordEnd { TRecordEnd _ }
+  with      { TWith _ }
+  get       { TGet _ }
 
 %%
 
@@ -107,6 +111,8 @@ Exp0 : if Exp0 then Exp0 else Exp0 { EIf (tokLoc $1) $2 $4 $6 }
      | Exp0 '<-' Exp0              { EAssignment (tokLoc $2) $1 $3 }
      | Exp0 ';' Exp0               { EStatement (tokLoc $2) $1 $3  }  
      | List                        { $1 }
+     | Record                      { $1 }
+     | get var Exp0                { EGetField (tokLoc $1) (varString $2) $3 }
      | '(' Exp0 ')'                { $2 }
      | Exp1                        { $1 }
 
@@ -120,6 +126,16 @@ Type : typeInt               { YInt   }
 
 List : '[]' '::' Type      { EVal (ENil (tokLoc $1) $3)     }
      | Exp0 ':' Exp0       { EVal (ECons (tokLoc $2) $1 $3) } 
+
+Record : record var '::' Type '=' Exp0 with Exp0 
+       { EVal 
+          (ERecordField 
+            (tokLoc $1) 
+            (varString $2) 
+            $4 
+            $6
+            $8) }
+        | recordEnd { EVal (ERecordEnd (tokLoc $1)) }
 
 Exp1 : Exp1 '+' Exp1           { EBinop (tokLoc $2) Add $1 $3    }
     | Exp1 '-' Exp1            { EBinop (tokLoc $2) Sub $1 $3    }
