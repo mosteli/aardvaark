@@ -1,0 +1,1 @@
+ELet  "rec" (EVal record "x" :: YInt = EVal 1 EVal recordEnd) (EGetField  "x" (EVar  "rec")) (YParsedRecord "x" YInt YParsedRecordEnd)

@@ -146,7 +146,7 @@ eval env (EGetField p soughtField (EVal v)) =
         (ERecordField _ fieldName typ e rest) -> 
             if soughtField == fieldName 
                 then (env, e) 
-                else eval env rest 
+                else (env, EGetField p soughtField rest)
         ERecordEnd _ -> error $ (ppPos p) ++ "Sought field not found in record" 
         _ -> error $ (ppPos p) ++ "Non-record value in get call expression"
 eval env (EGetField p soughtField e) = case eval env e of 
@@ -179,9 +179,10 @@ subst val str e = recur e
     recur (ETail p e1)    = ETail p (s e1)
     recur (EBang p e1)    = EBang p (s e1)
     recur (ERef p e1)     = ERef p (s e1)
-    recur (EAssignment p e1 e2) = EAssignment p (s e1) (s e2)
-    recur (EStatement p e1 e2) = EStatement p (s e1) (s e2)
+    recur (EAssignment p e1 e2)  = EAssignment p (s e1) (s e2)
+    recur (EStatement p e1 e2)   = EStatement p (s e1) (s e2)
     recur (EWhile p e1 e2 e3 e4) = EWhile p (s e1) (s e2) (s e3) (s e4)
+    recur (EGetField p str e1) = EGetField p str (s e1)
     recur e = e -- Keeps uninvolved expressions the way they are
 
 evalFinal :: Exp -> IO ()

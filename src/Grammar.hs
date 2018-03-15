@@ -67,6 +67,8 @@ data YType =
   | YPair YType YType
   | YList YType
   | YRef YType
+  | YParsedRecord String YType YType -- rightmost YType should be a YParsedRecord  
+  | YParsedRecordEnd 
   | YRecordField [(String, YType)]
   deriving (Eq, Show)
 

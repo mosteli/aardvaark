@@ -69,6 +69,8 @@ import Grammar
   recordEnd { TRecordEnd _ }
   with      { TWith _ }
   get       { TGet _ }
+  '{'       { TLCurl _ }
+  '}'       { TRCurl _ }
 
 %%
 
@@ -123,6 +125,12 @@ Type : typeInt               { YInt   }
      | Type '->' Type        { YApp $1 $3  }
      | '(' Type ',' Type ')' { YPair $2 $4 }
      | '[' Type ']'          { YList $2    }
+     | '{' var '::' Type '}' { YParsedRecord (varString $2) $4 YParsedRecordEnd }
+
+RecordType : var '::' Type ',' RecordType 
+              { YParsedRecord (varString $1) $3 $5 }
+           | var '::' Type                
+              { YParsedRecord (varString $1) $3 YParsedRecordEnd }
 
 List : '[]' '::' Type      { EVal (ENil (tokLoc $1) $3)     }
      | Exp0 ':' Exp0       { EVal (ECons (tokLoc $2) $1 $3) } 

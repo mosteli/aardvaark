@@ -1,0 +1,1 @@
+EVal record "x" :: YInt = EVal 1 EVal record "y" :: YBool = EVal ETrue EVal record "z" :: YFloat = EVal 1.0 EVal recordEnd
