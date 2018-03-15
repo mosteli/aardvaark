@@ -25,14 +25,18 @@ evaluator (Basic lex par read step prog)
         putStrLn $ show $ L.alexScanTokens input
     | read && par = do
         input <- readFile prog
-        putStrLn $ show $ parse input
+        let e = parse input in 
+            putStrLn $ show $ typecheckAST (TC.typecheck' e) e 
     | read && step = do
         input <- readFile prog 
         stepTypecheckedEval $ parse input
-    | read = E.evalFinal $ stringToTC prog 
+    | read = do 
+        input <- readFile prog 
+        E.evalFinal $ stringToTC input
     | step = stepTypecheckedEval $ parse prog 
     | lex = putStrLn $ show $ lexed
-    | par = putStrLn $ show $ parse prog 
+    | par = let e = parse prog in 
+        putStrLn $ show $ typecheckAST (TC.typecheck' e) e 
     | otherwise = E.evalFinal $ stringToTC prog 
     where
         lexed = L.alexScanTokens prog
@@ -41,6 +45,9 @@ evaluator (Basic lex par read step prog)
         typecheckEval e = evaluate (TC.typecheck' e) e
         stringToTC = typecheckEval . parse 
         stepTypecheckedEval e = stepEvaluate (TC.typecheck' e) e 
+
+typecheckAST :: G.YType -> G.Exp -> G.Exp 
+typecheckAST !t e = e
 
 evaluate :: G.YType -> G.Exp -> G.Exp 
 evaluate !t e = E.deepEval' [] e 
