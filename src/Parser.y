@@ -125,7 +125,7 @@ Type : typeInt               { YInt   }
      | Type '->' Type        { YApp $1 $3  }
      | '(' Type ',' Type ')' { YPair $2 $4 }
      | '[' Type ']'          { YList $2    }
-     | '{' var '::' Type '}' { YParsedRecord (varString $2) $4 YParsedRecordEnd }
+     | '{' RecordType '}'    { $2 }
 
 RecordType : var '::' Type ',' RecordType 
               { YParsedRecord (varString $1) $3 $5 }

@@ -1,0 +1,1 @@
+let rec :: { x :: int, y :: int } = (record x :: int = 1 with record y :: int = 2 with recordEnd) in get y rec 

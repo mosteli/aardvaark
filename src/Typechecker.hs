@@ -160,7 +160,7 @@ typecheck egetfield@(EGetField p str e) = do
 recContainsVar :: String -> YType -> Bool 
 recContainsVar var recType = 
     case recType of 
-        YParsedRecord fieldName fieldType rest -> 
+        YParsedRecord fieldName _ rest -> 
             if var == fieldName
                 then True 
                 else recContainsVar var rest 
