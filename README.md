@@ -35,9 +35,12 @@ Syntax:
 ```
 e ::= n | e1 + e2 | e1 - e2 | e1 * e2) | e1 / e2
     | true | false | (<= e1 e2) | if e1 e2 e3 | func (var :: t1) :: t2 -> e
-    | fix var (var :: t1) :: t2 -> e | e1~e2 | (e1, e2) | [] :: t  | e : [t]
+    | fix var (var :: t1) :: t2 -> e | e1~e2 | (tuple) | [] :: t  | e : [t]
     | head [t] | tail [t] | empty [t] | ref e | !e | while e1 do e2 end | e1 <- e2
-    | e1 ; e2
+    | e1 ; e2 | record | get record | nth int e
+
+tuple ::= e | e, tuple
+record ::= record var :: t = e with record | recordEnd
 
 [t] means a list of elements of type t.
 
@@ -47,6 +50,12 @@ t ::= bool | int | float | t1 -> t2 | [t] | <t>
 Where n is a number of the form of an integer or float and var is an alphabetical string for a variable name.
 
 ## Changelog
+
+#### 3/16/2018
+##### New Features
+- Record types added
+- Variadic tuples added
+- Added tests for both new features
 
 #### 3/13/2018
 ##### New Features
