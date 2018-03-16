@@ -1,6 +1,7 @@
 module Grammar where
 
 import qualified Data.Map.Strict as Map
+import Data.List 
 
 data Pos = Pos { offset :: Int
                , line   :: Int
@@ -23,6 +24,7 @@ data Exp =
     | EApp Pos Exp Exp
     | EFst Pos Exp 
     | ESnd Pos Exp 
+    | ENth Pos Exp Exp
     | EHead Pos Exp  
     | ETail Pos Exp  
     | EEmpty Pos Exp 
@@ -48,7 +50,7 @@ data EValue =
   | ENaN Pos
   | EFunc Pos String Exp YType
   | EFix Pos String String Exp YType 
-  | EPair Pos Exp Exp
+  | ETuple Pos [Exp]
   | ENil Pos YType 
   | ECons Pos Exp Exp
   | ERecordField Pos String YType Exp Exp 
@@ -64,9 +66,11 @@ data YType =
   | YBool  
   | YUnit  
   | YApp YType YType
-  | YPair YType YType
+  | YTuple [YType]
   | YList YType
   | YRef YType
+  | YParsedRecord String YType YType -- rightmost YType should be a YParsedRecord  
+  | YParsedRecordEnd 
   | YRecordField [(String, YType)]
   deriving (Eq, Show)
 
@@ -81,7 +85,6 @@ instance Show EValue where
   show (ENaN _) = "EaN"
   show (EFunc _ s e t) = "EFunc " ++ (show t) ++ s ++ " -> " ++ show e
   show (EFix _ s1 s2 e t) = "EFix " ++ (show t) ++ s1 ++ " " ++ s2 ++ " -> " ++ show e
-  show (EPair _ e1 e2) = "EPair " ++ (show e1) ++ " " ++ (show e2)
   show (EUnit _) = "EUnit"
   show EEvalUnit = "EEvalUnit"
   show (ECons _ e1 e2) = "ECons " ++ (show e1) ++ " " ++ (show e2)
@@ -90,3 +93,4 @@ instance Show EValue where
   show (ERecordField _ str typ e1 rest) = "record " ++ (show str) ++ " :: " 
     ++ (show typ) ++ " = " ++ (show e1) ++ " " ++ (show rest)
   show (ERecordEnd _) = "recordEnd" 
+  show (ETuple _ ls) = "(" ++ (intercalate ", " (map show ls)) ++ ")"

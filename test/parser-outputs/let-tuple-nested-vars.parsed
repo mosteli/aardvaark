@@ -1,0 +1,1 @@
+ELet  "x" (EVal 5) (ELet  "y" (EVal 6) (ELet  "e" (EVal (EVar  "x", EVar  "y")) (EVar  "e") (YTuple [YInt,YInt])) YInt) YInt

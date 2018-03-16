@@ -1,0 +1,1 @@
+record x :: int = 1 with record y :: bool = true with record z :: float = 1.0 with recordEnd

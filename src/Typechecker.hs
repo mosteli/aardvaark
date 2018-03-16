@@ -34,10 +34,6 @@ typecheck (EVal v) = case v of
                 if t1 == returnType 
                     then return typ 
                     else error $ pTypeError $ EVal efix
-    (EPair _ e1 e2) -> do 
-        t1 <- typecheck e1 
-        t2 <- typecheck e2 
-        return $ YPair t1 t2 
     (ENil _ t) -> return t 
     econs@(ECons _ e1 e2) -> do 
         t1 <- typecheck e1
@@ -50,13 +46,14 @@ typecheck (EVal v) = case v of
             _ -> error $ pTypeError $ EVal econs
     erec@(ERecordField _ str typ e1 rest) -> do 
         t1 <- typecheck e1 
-        t2 <- typecheck rest
+        t2 <- typecheck rest 
         if t1 == typ
-            then case t2 of 
-                YRecordField ls -> return $ YRecordField ((str, typ):ls)
-                _ -> error $ pTypeError rest 
-            else error $ pTypeError $ EVal erec
-    (ERecordEnd _) -> return $ YRecordField []
+            then return $ YParsedRecord str typ t2 
+            else error $ pTypeError $ EVal erec 
+    (ERecordEnd _) -> return $ YParsedRecordEnd
+    (ETuple _ ls) -> let types = mapM typecheck ls in do
+        t <- types 
+        return $ YTuple t
 typecheck evar@(EVar _ varName) = do
     (TypeEnv env) <- ask
     case Map.lookup varName env of 
@@ -92,17 +89,30 @@ typecheck elet@(ELet _ str e1 e2 typ) = do
     t2 <- local (insertType str t1) $ typecheck e2  
     if t1 == typ -- Let just stores the type of e1 for us to check. We don't constrain t2's type.
         then return t2
-        else error $ pTypeError elet 
+        else error $ pExtendedTypeError typ t1 elet 
 typecheck efst@(EFst _ e) = do
   t1 <- typecheck e 
   case t1 of 
-    (YPair left _) -> return left
+    (YTuple types) -> 
+        if length types > 0 
+            then return $ head types 
+            else error $ pTypeError efst 
     _ -> error $ pTypeError efst
 typecheck esnd@(ESnd _ e) = do
   t1 <- typecheck e 
   case t1 of 
-    (YPair _ right) -> return right 
+    (YTuple types) -> 
+        if length types > 1 
+            then return $ head $ tail types 
+            else error $ pTypeError esnd 
     _ -> error $ pTypeError esnd
+typecheck enth@(ENth _ e1 (EVal (EInt _ i))) = do 
+    t1 <- typecheck e1
+    case t1 of 
+        (YTuple types) -> 
+            if (length types) > (fromIntegral i) 
+                then return $ types !! (fromIntegral i)
+                else error $ "nth expression: there are not enough elements in this tuple"
 typecheck ehead@(EHead _ e) = do 
   t1 <- typecheck e 
   case t1 of 
@@ -145,14 +155,33 @@ typecheck ewhile@(EWhile _ e1 e2 e3 e4) = do
     case (t1, t2) of 
         (YBool, YUnit) -> return YUnit 
         (_, _) -> error $ pTypeError ewhile
-typecheck egetfield@(EGetField _ str e) = do 
+typecheck egetfield@(EGetField p str e) = do 
     t1 <- typecheck e 
     case t1 of 
         YRecordField ls -> 
             case lookup str ls of 
                 Just fieldType -> return fieldType 
                 Nothing -> error $ "getField called on record without given field"
+        recT@(YParsedRecord fieldName fieldType rest) -> 
+            if recContainsVar str recT
+                then return $ recGetVar str recT 
+                else error $ pTypeError egetfield 
+        YParsedRecordEnd -> error $ "getField called on record without given field"
         _ -> error $ pTypeError egetfield 
+
+recContainsVar :: String -> YType -> Bool 
+recContainsVar var recType = 
+    case recType of 
+        YParsedRecord fieldName _ rest -> 
+            if var == fieldName
+                then True 
+                else recContainsVar var rest 
+        YParsedRecordEnd -> False 
+
+recGetVar :: String -> YType -> YType 
+recGetVar var (YParsedRecord fieldName fieldType rest)
+    | fieldName == var = fieldType 
+    | otherwise        = recGetVar var rest 
 
 insertType :: String -> YType -> TypeEnv -> TypeEnv
 insertType str typ (TypeEnv m) = TypeEnv (Map.insert str typ m)
@@ -169,3 +198,8 @@ insertList ls (TypeEnv env) = TypeEnv $ helper ls env
 
 pTypeError :: Exp -> String
 pTypeError e = "Type mismatch on " ++ show e
+
+pExtendedTypeError :: YType -> YType -> Exp -> String 
+pExtendedTypeError expected actual e = pTypeError e ++ 
+    "\nExpected: " ++ (show expected) ++ 
+    "\nActual: " ++ (show actual)
