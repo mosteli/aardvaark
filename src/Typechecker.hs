@@ -34,10 +34,6 @@ typecheck (EVal v) = case v of
                 if t1 == returnType 
                     then return typ 
                     else error $ pTypeError $ EVal efix
-    (EPair _ e1 e2) -> do 
-        t1 <- typecheck e1 
-        t2 <- typecheck e2 
-        return $ YPair t1 t2 
     (ENil _ t) -> return t 
     econs@(ECons _ e1 e2) -> do 
         t1 <- typecheck e1
@@ -55,6 +51,9 @@ typecheck (EVal v) = case v of
             then return $ YParsedRecord str typ t2 
             else error $ pTypeError $ EVal erec 
     (ERecordEnd _) -> return $ YParsedRecordEnd
+    (ETuple _ ls) -> let types = mapM typecheck ls in do
+        t <- types 
+        return $ YTuple t
 typecheck evar@(EVar _ varName) = do
     (TypeEnv env) <- ask
     case Map.lookup varName env of 
@@ -94,13 +93,26 @@ typecheck elet@(ELet _ str e1 e2 typ) = do
 typecheck efst@(EFst _ e) = do
   t1 <- typecheck e 
   case t1 of 
-    (YPair left _) -> return left
+    (YTuple types) -> 
+        if length types > 0 
+            then return $ head types 
+            else error $ pTypeError efst 
     _ -> error $ pTypeError efst
 typecheck esnd@(ESnd _ e) = do
   t1 <- typecheck e 
   case t1 of 
-    (YPair _ right) -> return right 
+    (YTuple types) -> 
+        if length types > 1 
+            then return $ head $ tail types 
+            else error $ pTypeError esnd 
     _ -> error $ pTypeError esnd
+typecheck enth@(ENth _ e1 (EVal (EInt _ i))) = do 
+    t1 <- typecheck e1
+    case t1 of 
+        (YTuple types) -> 
+            if (length types) > (fromIntegral i) 
+                then return $ types !! (fromIntegral i)
+                else error $ "nth expression: there are not enough elements in this tuple"
 typecheck ehead@(EHead _ e) = do 
   t1 <- typecheck e 
   case t1 of 

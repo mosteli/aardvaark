@@ -1,0 +1,1 @@
+let x :: int = 5 in let y :: int = 6 in let e :: (int, int) = (x, y) in e

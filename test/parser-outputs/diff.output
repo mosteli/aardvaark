@@ -1,0 +1,4 @@
+1c1
+< ELet  "e" (EVal (EVal 1, EVal 2)) (EFst  (EVar  "e")) (YTuple [YInt,YInt])
+---
+> ELet  "e" (EVal EPair EVal 1 EVal 2) (EFst  (EVar  "e")) (YPair YInt YInt)

@@ -81,8 +81,14 @@ eval env eapp@(EApp p e1 e2) = case (e1, e2) of
         (env2, exp2) -> case eval env e2 of
             (env3, exp3) -> (env2 ++ env3, EApp p exp2 exp3)
 
-eval env (EFst _ (EVal (EPair _ e1 _))) = (env, e1) 
-eval env (ESnd _ (EVal (EPair _ _ e2))) = (env, e2)
+eval env (EFst _ (EVal (ETuple _ (l:ls)))) = (env, l)
+eval env (EFst p (EVal (ETuple _ [])))  = error $ (ppPos p) ++ "application of fst on empty tuple (how did this happen?)"
+eval env (ESnd p (EVal (ETuple _ [])))  = error $ (ppPos p) ++ "application of snd on empty tuple (how did this happen?)"
+eval env (ESnd p (EVal (ETuple _ [l]))) = error $ (ppPos p) ++ "application of snd on one-tuple"
+eval env (ESnd _ (EVal (ETuple _ ls)))  = (env, ls !! 1)
+eval env (ENth _ (EVal (ETuple _ ls)) (EVal (EInt _ i))) 
+    | length ls > (fromIntegral i) = (env, ls !! (fromIntegral i))
+    | otherwise = error "application of nth on tuple with fewer than n items"
 eval env (EEmpty p e1) = 
     case e1 of 
         (EVal (ENil _ _)) -> (env, EVal $ EBool p True)
@@ -183,6 +189,9 @@ subst val str e = recur e
     recur (EStatement p e1 e2)   = EStatement p (s e1) (s e2)
     recur (EWhile p e1 e2 e3 e4) = EWhile p (s e1) (s e2) (s e3) (s e4)
     recur (EGetField p str e1) = EGetField p str (s e1)
+    recur (ENth p e1 e2) = ENth p (s e1) (s e2)
+    recur (EVal (ETuple p es)) = EVal (ETuple p (map s es))
+    recur (EVal (ERecordField p str typ e1 rest)) = EVal (ERecordField p str typ (s e1) (s rest))
     recur e = e -- Keeps uninvolved expressions the way they are
 
 evalFinal :: Exp -> IO ()

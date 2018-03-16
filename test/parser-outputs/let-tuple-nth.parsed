@@ -1,0 +1,1 @@
+ELet  "e" (EVal (EVal 1, EVal 2, EVal 3)) (ENth  (EVar  "e") (EVal 2)) (YTuple [YInt,YInt,YInt])

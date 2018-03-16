@@ -71,6 +71,7 @@ import Grammar
   get       { TGet _ }
   '{'       { TLCurl _ }
   '}'       { TRCurl _ }
+  nth       { TNth _ }
 
 %%
 
@@ -97,15 +98,15 @@ Exp0 : if Exp0 then Exp0 else Exp0 { EIf (tokLoc $1) $2 $4 $6 }
             (varString $4)
             $11
             (YApp $6 $9)) }
-     | '(' Exp0 ',' Exp0 ')'       
+     | '(' Exp0 ',' TArgs ')'
        { EVal 
-          (EPair 
+         ( ETuple 
             (tokLoc $1)
-            $2
-            $4) }
+            ($2 : $4) ) }
      | while Exp0 do Exp0 end      { EWhile (tokLoc $1) $2 $4 $2 $4 }
      | fst Exp0                    { EFst (tokLoc $1) $2   }
      | snd Exp0                    { ESnd (tokLoc $1) $2   }
+     | nth int Exp0                { ENth (tokLoc $1) $3 (buildValuedExp $2) }
      | head Exp0                   { EHead (tokLoc $1) $2  }
      | tail Exp0                   { ETail (tokLoc $1) $2  }
      | empty Exp0                  { EEmpty (tokLoc $1) $2 }
@@ -118,14 +119,22 @@ Exp0 : if Exp0 then Exp0 else Exp0 { EIf (tokLoc $1) $2 $4 $6 }
      | '(' Exp0 ')'                { $2 }
      | Exp1                        { $1 }
 
-Type : typeInt               { YInt   }
-     | typeFloat             { YFloat }
-     | typeBool              { YBool  }
-     | '<' Type '>'          { YRef $2  }
+TArgs : Exp0                 { $1 : [] }
+      | Exp0 ',' TArgs       { $1 : $3 }
+
+TArgsBase : Exp0 { [$1] }
+
+Type : typeInt               { YInt        }
+     | typeFloat             { YFloat      }
+     | typeBool              { YBool       }
+     | '<' Type '>'          { YRef $2     }
      | Type '->' Type        { YApp $1 $3  }
-     | '(' Type ',' Type ')' { YPair $2 $4 }
+     | '(' Typeargs ')'      { YTuple $2   }
      | '[' Type ']'          { YList $2    }
-     | '{' RecordType '}'    { $2 }
+     | '{' RecordType '}'    { $2          }
+
+Typeargs : Type              { $1 : [] }
+         | Type ',' Typeargs { $1 : $3 }
 
 RecordType : var '::' Type ',' RecordType 
               { YParsedRecord (varString $1) $3 $5 }

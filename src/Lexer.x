@@ -58,6 +58,7 @@ record        { (\p s -> TRecord p)          }
 recordEnd     { (\p s -> TRecordEnd p)       }
 with          { (\p s -> TWith p)            }
 get           { (\p s -> TGet p)             }
+nth           { (\p s -> TNth p)             }
 \:            { (\p s -> TCons p)            }
 @variable     { (\p s -> TVariable p s)      }
 \~            { (\p s -> TApply p)           }
@@ -128,6 +129,7 @@ data Token =
   | TGet AlexPosn
   | TRCurl AlexPosn 
   | TLCurl AlexPosn 
+  | TNth AlexPosn 
   deriving (Eq)
 
 -- Extracts AlexPosn from a given token
@@ -187,6 +189,7 @@ tokLoc (TWith p) = alexPosnToPos p
 tokLoc (TGet p) = alexPosnToPos p 
 tokLoc (TRCurl p) = alexPosnToPos p 
 tokLoc (TLCurl p) = alexPosnToPos p 
+tokLoc (TNth p) = alexPosnToPos p 
 
 alexPosnToPos :: AlexPosn -> Pos
 alexPosnToPos (AlexPn o l c) = Pos o l c
@@ -247,4 +250,5 @@ instance Show Token where
   show (TGet _) = "get" 
   show (TRCurl _) = "}"
   show (TLCurl _) = "{"
+  show (TNth _) = "nth" 
 }
